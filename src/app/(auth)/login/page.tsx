@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState("demo@vnbuilder.com");
-  const [password, setPassword] = useState("password");
+const Login: React.FC = () => {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -19,14 +18,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError("");
     setIsLoading(true);
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-    // Mock validation
-    if (email === "demo@vnbuilder.com" && password === "password") {
-      onLogin();
-    } else {
-      setError("Invalid email or password. Please try again.");
+      if (result?.error) {
+        setError(result.error);
+        setIsLoading(false);
+      } else {
+        router.push("/workspace");
+        router.refresh();
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }
   };
@@ -104,6 +111,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
+                required
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4554] bg-[#1c2027] focus:border-primary h-12 placeholder:text-[#64748b] px-4 text-base font-normal leading-normal transition-all duration-200"
               />
             </div>
@@ -123,6 +131,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  required
                   className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4554] bg-[#1c2027] focus:border-primary h-12 placeholder:text-[#64748b] px-4 pr-12 text-base font-normal leading-normal transition-all duration-200"
                 />
                 <button

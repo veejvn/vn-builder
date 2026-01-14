@@ -1,13 +1,12 @@
-export type UserRole = "ADMIN" | "USER" | "EDITOR" | "DEVELOPER" | "VIEWER";
-export type UserStatus = "ACTIVE" | "INACTIVE" | "AWAY";
+export type UserRole = "ADMIN" | "USER";
+export type UserStatus = "ACTIVE" | "INACTIVE";
 
 export interface User {
   _id: string;
-  name: string;
+  name?: string;
   email: string;
   role: UserRole;
   status: UserStatus;
-  lastActive?: string;
   createdAt: string;
   updatedAt: string;
 }

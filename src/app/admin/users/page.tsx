@@ -58,12 +58,6 @@ export default function UserManagementPage() {
     switch (role) {
       case "ADMIN":
         return <Shield size={14} />;
-      case "EDITOR":
-        return <FileEdit size={14} />;
-      case "DEVELOPER":
-        return <Code size={14} />;
-      case "VIEWER":
-        return <Eye size={14} />;
       default:
         return null;
     }
@@ -73,12 +67,6 @@ export default function UserManagementPage() {
     switch (role) {
       case "ADMIN":
         return "purple";
-      case "EDITOR":
-        return "blue";
-      case "DEVELOPER":
-        return "orange";
-      case "VIEWER":
-        return "teal";
       default:
         return "gray";
     }
@@ -210,7 +198,7 @@ export default function UserManagementPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="h-9 w-9 rounded-full bg-[#323b47] flex items-center justify-center text-white font-bold ring-1 ring-border-dark uppercase">
-                            {user.name.charAt(0)}
+                            {user.name?.[0] || user.email[0]}
                           </div>
                           {user.status === "ACTIVE" && (
                             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-[#111418]"></div>
@@ -218,7 +206,7 @@ export default function UserManagementPage() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-medium text-white">
-                            {user.name}
+                            {user.name || "Unnamed"}
                           </span>
                           <span className="text-[#9da8b9] text-xs">
                             {user.email}
@@ -229,21 +217,11 @@ export default function UserManagementPage() {
                     <td className="py-3 px-4">
                       <div
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium 
-                                                      ${
-                                                        getRoleColor(
-                                                          user.role
-                                                        ) === "purple"
-                                                          ? "border-purple-500/20 bg-purple-500/10 text-purple-400"
-                                                          : getRoleColor(
-                                                              user.role
-                                                            ) === "blue"
-                                                          ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
-                                                          : getRoleColor(
-                                                              user.role
-                                                            ) === "orange"
-                                                          ? "border-orange-500/20 bg-orange-500/10 text-orange-400"
-                                                          : "border-teal-500/20 bg-teal-500/10 text-teal-400"
-                                                      }`}
+                      ${
+                        user.role === "ADMIN"
+                          ? "border-purple-500/20 bg-purple-500/10 text-purple-400"
+                          : "border-slate-500/20 bg-slate-500/10 text-slate-400"
+                      }`}
                       >
                         {renderRoleIcon(user.role)}
                         {user.role}
@@ -252,20 +230,19 @@ export default function UserManagementPage() {
                     <td className="py-3 px-4">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border
-                                                      ${
-                                                        user.status === "ACTIVE"
-                                                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                                          : user.status ===
-                                                            "INACTIVE"
-                                                          ? "bg-slate-700/30 text-slate-400 border-slate-600/30"
-                                                          : "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                                                      }`}
+                         ${
+                          user.status === "ACTIVE"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                            : user.status === "INACTIVE"
+                            ? "bg-slate-700/30 text-slate-400 border-slate-600/30"
+                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                        }`}
                       >
                         {user.status}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-[#9da8b9]">
-                      {user.lastActive || "Never"}
+                      {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-2 text-[#9da8b9]">

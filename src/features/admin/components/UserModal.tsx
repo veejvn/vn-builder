@@ -159,10 +159,10 @@ export const UserModal: React.FC<UserModalProps> = ({
                 }
               >
                 <option value="USER">User</option>
-                <option value="EDITOR">Editor</option>
-                <option value="DEVELOPER">Developer</option>
                 <option value="ADMIN">Admin</option>
-                <option value="VIEWER">Viewer</option>
+                {/* <option value="EDITOR">Editor</option>
+                <option value="DEVELOPER">Developer</option>
+                <option value="VIEWER">Viewer</option> */}
               </select>
             </div>
 

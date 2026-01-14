@@ -3,7 +3,8 @@ export enum View {
   WORKSPACES = 'WORKSPACES',
   PROJECTS = 'PROJECTS',
   EDITOR = 'EDITOR',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
+  SETTINGS = 'SETTINGS'
 }
 
 export interface User {

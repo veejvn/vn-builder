@@ -26,6 +26,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       case View.LOGIN:
         router.push("/login");
         break;
+      case View.SETTINGS:
+        router.push("/settings");
+        break;
       default:
         console.log(`No route defined for view: ${view}`);
     }

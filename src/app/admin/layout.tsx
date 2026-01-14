@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
+import { UserProfile } from "@/components/layout/UserProfile";
 
 export default function AdminLayout({
   children,
@@ -78,28 +79,7 @@ export default function AdminLayout({
             })}
           </nav>
           {/* User Profile */}
-          <div className="mt-auto border-t border-border-dark pt-4">
-            <div className="flex items-center gap-3 px-2">
-              <div
-                className="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-border-dark"
-                style={{
-                  backgroundImage:
-                    'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAWjjLLbh_T4C6zQVpg1vs11DnHi7XZhI-pC_gyENg_1M8A0EMs8wbIxMKFWORSHe0Ps_7FP5pUm4ZQ2rZoXkzdbLM3gEuY7FNYqN_nMov83O76RfISVEFvXCSDthOq5EjF9U12Rau1qimktTYCexX5lLDdt5GTCkj9aZxXCLpARHxQe4dy6jWvDfS0nnb1NBRr1lqpLs8P07GFGq5BDtItG2Mv9Br98AXnDuzfy6yOxyGE0BBRt3OV59pVkmNw0xx-mcN6ParxV0s")',
-                }}
-              ></div>
-              <div className="flex flex-col overflow-hidden">
-                <span className="text-white text-sm font-medium truncate">
-                  Tom Cook
-                </span>
-                <span className="text-[#9da8b9] text-xs truncate">
-                  Super Admin
-                </span>
-              </div>
-              <button className="ml-auto text-[#9da8b9] hover:text-white transition-colors">
-                <LogOut size={20} />
-              </button>
-            </div>
-          </div>
+          <UserProfile />
         </div>
       </aside>
 

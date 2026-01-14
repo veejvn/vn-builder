@@ -19,14 +19,14 @@ VNBuilder là **schema-first, architecture-driven project**. Mọi đóng góp c
 
 ## 2. Yêu cầu trước khi bắt đầu
 
-* Node.js >= 18
-* pnpm (khuyến nghị)
-* Hiểu cơ bản:
+- Node.js >= 18
+- pnpm (khuyến nghị)
+- Hiểu cơ bản:
 
-  * React / Next.js App Router
-  * TypeScript
-  * Tailwind CSS
-  * Zustand
+  - React / Next.js App Router
+  - TypeScript
+  - Tailwind CSS
+  - Zustand
 
 ---
 
@@ -49,10 +49,10 @@ http://localhost:3000
 
 ### 4.1 Branch chính
 
-| Branch    | Mục đích                |
-| --------- | ----------------------- |
-| `main`    | Production (đã release) |
-| `dev` | Development / Staging   |
+| Branch | Mục đích                |
+| ------ | ----------------------- |
+| `main` | Production (đã release) |
+| `dev`  | Development / Staging   |
 
 ❌ Không commit trực tiếp vào `main`
 
@@ -75,9 +75,9 @@ feature/<domain>-<short-desc>
 
 Ví dụ:
 
-* `feature/builder-canvas-dnd`
-* `feature/auth-rbac`
-* `feature/codegen-nextjs`
+- `feature/builder-canvas-dnd`
+- `feature/auth-rbac`
+- `feature/codegen-nextjs`
 
 ---
 
@@ -107,9 +107,9 @@ refactor(schema): normalize layout tree
 
 ### 6.1 TypeScript
 
-* ❌ Không dùng `any`
-* ✅ Prefer `type` hơn `interface` (trừ khi cần extend)
-* ✅ Define type trong `*.types.ts`
+- ❌ Không dùng `any`
+- ✅ Prefer `type` hơn `interface` (trừ khi cần extend)
+- ✅ Define type trong `*.types.ts`
 
 ---
 
@@ -131,10 +131,10 @@ features/
 
 ### 6.3 Builder-specific rules
 
-* Mọi UI trong Builder **phải render từ schema**
-* ❌ Không hardcode JSX ngoài registry
-* ❌ Không mutate schema trực tiếp
-* ✅ Mọi thay đổi schema thông qua store / utils
+- Mọi UI trong Builder **phải render từ schema**
+- ❌ Không hardcode JSX ngoài registry
+- ❌ Không mutate schema trực tiếp
+- ✅ Mọi thay đổi schema thông qua store / utils
 
 ---
 
@@ -142,15 +142,16 @@ features/
 
 ### 7.1 Khi tạo PR
 
-* Base branch:
+- Base branch:
 
-  * `feature/*` → `develop`
-  * `release/*` → `main`
-* PR phải có:
+  - `feature/*` → `dev`
+  - `release/*` → `main`
 
-  * Mô tả rõ ràng
-  * Screenshot / video (nếu là UI)
-  * Checklist hoàn thành
+- PR phải có:
+
+  - Mô tả rõ ràng
+  - Screenshot / video (nếu là UI)
+  - Checklist hoàn thành
 
 ---
 
@@ -176,9 +177,9 @@ vMAJOR.MINOR.PATCH
 
 Ví dụ:
 
-* `v0.1.0` – Builder MVP
-* `v0.2.0` – Code generation
-* `v1.0.0` – Stable release
+- `v0.1.0` – Builder MVP
+- `v0.2.0` – Code generation
+- `v1.0.0` – Stable release
 
 ---
 
@@ -186,9 +187,9 @@ Ví dụ:
 
 Nếu PR **thay đổi schema**:
 
-* Phải document rõ ràng
-* Không được phá schema cũ nếu chưa có migration
-* Update trong:
+- Phải document rõ ràng
+- Không được phá schema cũ nếu chưa có migration
+- Update trong:
 
   ```text
   features/builder/schema/
@@ -208,8 +209,8 @@ Nếu PR **thay đổi schema**:
 
 ## 11. Cần hỗ trợ?
 
-* Tạo issue với label phù hợp
-* Thảo luận trước nếu là thay đổi kiến trúc lớn
+- Tạo issue với label phù hợp
+- Thảo luận trước nếu là thay đổi kiến trúc lớn
 
 ---
 

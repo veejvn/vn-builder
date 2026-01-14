@@ -6,5 +6,7 @@ export default function RootDashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <DashboardLayout>{children}</DashboardLayout>
+  );
 }

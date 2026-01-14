@@ -98,7 +98,9 @@ export const UserModal: React.FC<UserModalProps> = ({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-[#9da8b9]">Full Name</label>
+            <label className="text-sm font-medium text-[#9da8b9]">
+              Full Name
+            </label>
             <input
               type="text"
               required
@@ -112,7 +114,9 @@ export const UserModal: React.FC<UserModalProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-[#9da8b9]">Email Address</label>
+            <label className="text-sm font-medium text-[#9da8b9]">
+              Email Address
+            </label>
             <input
               type="email"
               required
@@ -128,7 +132,9 @@ export const UserModal: React.FC<UserModalProps> = ({
 
           {!user && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[#9da8b9]">Password</label>
+              <label className="text-sm font-medium text-[#9da8b9]">
+                Password
+              </label>
               <input
                 type="password"
                 required
@@ -161,7 +167,9 @@ export const UserModal: React.FC<UserModalProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[#9da8b9]">Status</label>
+              <label className="text-sm font-medium text-[#9da8b9]">
+                Status
+              </label>
               <select
                 className="w-full bg-[#282f39] text-white text-sm rounded-lg p-2.5 border border-border-dark focus:ring-1 focus:ring-primary focus:outline-none"
                 value={formData.status}

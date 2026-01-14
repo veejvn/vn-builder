@@ -3,7 +3,7 @@ export type UserStatus = "ACTIVE" | "INACTIVE";
 
 export interface User {
   _id: string;
-  name?: string;
+  name: string;
   email: string;
   role: UserRole;
   status: UserStatus;

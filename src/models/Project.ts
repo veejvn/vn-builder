@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IProject extends Document {
   name: string;
@@ -7,7 +7,7 @@ export interface IProject extends Document {
   owner: mongoose.Types.ObjectId;
   schema: any; // JSON layout tree
   thumbnail?: string;
-  status: 'DRAFT' | 'PUBLISHED';
+  status: "DRAFT" | "PUBLISHED";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,7 +16,7 @@ const ProjectSchema: Schema = new Schema(
   {
     name: {
       type: String,
-      required: [true, 'Please provide a project name'],
+      required: [true, "Please provide a project name"],
       trim: true,
     },
     description: {
@@ -25,12 +25,12 @@ const ProjectSchema: Schema = new Schema(
     },
     workspaceId: {
       type: Schema.Types.ObjectId,
-      ref: 'Workspace',
+      ref: "Workspace",
       required: true,
     },
     owner: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     schema: {
@@ -42,8 +42,8 @@ const ProjectSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ['DRAFT', 'PUBLISHED'],
-      default: 'DRAFT',
+      enum: ["DRAFT", "PUBLISHED"],
+      default: "DRAFT",
     },
   },
   {
@@ -51,4 +51,5 @@ const ProjectSchema: Schema = new Schema(
   }
 );
 
-export default mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema);
+export default mongoose.models.Project ||
+  mongoose.model<IProject>("Project", ProjectSchema);

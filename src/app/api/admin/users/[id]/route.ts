@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
-import User from "@/models/User";
 import { isAdmin } from "@/lib/permissions";
+import { adminService } from "@/features/admin/admin.service";
 
 export async function PUT(
   req: NextRequest,
@@ -16,16 +16,11 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, role, status } = await req.json();
+    const body = await req.json();
     const { id } = await params;
 
     await connectDB();
-
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { name, role, status },
-      { new: true }
-    ).select("-password");
+    const updatedUser = await adminService.updateUser(id, body);
 
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -54,16 +49,14 @@ export async function DELETE(
     const { id } = await params;
 
     await connectDB();
+    const deletedUser = await adminService.deleteUser(id);
 
-    // Thay vì xóa cứng, ta có thể chuyển trạng thái sang INACTIVE
-    const user = await User.findByIdAndUpdate(id, { status: "INACTIVE" }, { new: true });
-
-    if (!user) {
+    if (!deletedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      message: "User disabled successfully",
+      message: "User deleted successfully",
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

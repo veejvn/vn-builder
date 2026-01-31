@@ -10,6 +10,7 @@ export interface IWorkspace extends Document {
   }[];
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date;
 }
 
 const WorkspaceSchema: Schema = new Schema(
@@ -41,6 +42,10 @@ const WorkspaceSchema: Schema = new Schema(
         },
       },
     ],
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

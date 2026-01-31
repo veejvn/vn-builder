@@ -8,6 +8,7 @@ export interface IProject extends Document {
   schema: any; // JSON layout tree
   thumbnail?: string;
   status: "DRAFT" | "PUBLISHED";
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +45,10 @@ const ProjectSchema: Schema = new Schema(
       type: String,
       enum: ["DRAFT", "PUBLISHED"],
       default: "DRAFT",
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   {

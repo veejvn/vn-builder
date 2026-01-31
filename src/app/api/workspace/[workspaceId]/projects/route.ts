@@ -6,9 +6,9 @@ import { WorkspaceService } from "@/features/workspace/workspace.service";
 import { mapToProject } from "@/features/project/project.utils";
 
 interface Context {
-  params: {
+  params: Promise<{
     workspaceId: string;
-  };
+  }>;
 }
 
 export async function GET(req: NextRequest, context: Context) {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest, context: Context) {
 
     // Check if the user is an owner or editor of the workspace to create projects
     const memberRole = workspace.members.find(
-      (member : any) => member.user._id.toString() === session.user.id
+      (member: any) => member.user._id.toString() === session.user.id
     )?.role;
 
     if (!memberRole || (memberRole !== "OWNER" && memberRole !== "EDITOR")) {

@@ -6,9 +6,9 @@ import { WorkspaceService } from "@/features/workspace/workspace.service";
 import { mapToProject } from "@/features/project/project.utils";
 
 interface Context {
-  params: {
+  params: Promise<{
     projectId: string;
-  };
+  }>;
 }
 
 export async function GET(req: NextRequest, context: Context) {

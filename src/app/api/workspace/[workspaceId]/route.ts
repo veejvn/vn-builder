@@ -5,9 +5,9 @@ import { WorkspaceService } from "@/features/workspace/workspace.service";
 import { mapToWorkspace } from "@/features/workspace/workspace.utils";
 
 interface Context {
-  params: {
-    workspaceId: string; // Changed from 'id'
-  };
+  params: Promise<{
+    workspaceId: string;
+  }>;
 }
 
 export async function GET(req: NextRequest, context: Context) {
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, context: Context) {
   }
 
   try {
-    const { workspaceId } = context.params; // Changed from 'id'
+    const { workspaceId } = await context.params; // Changed from 'id'
     const iWorkspace = await WorkspaceService.getWorkspaceById(workspaceId);
 
     if (!iWorkspace) {
@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest, context: Context) {
   }
 
   try {
-    const { workspaceId } = context.params; // Changed from 'id'
+    const { workspaceId } = await context.params; // Changed from 'id'
     const { name, description } = await req.json();
 
     const iWorkspace = await WorkspaceService.getWorkspaceById(workspaceId);
@@ -84,7 +84,7 @@ export async function DELETE(req: NextRequest, context: Context) {
   }
 
   try {
-    const { workspaceId } = context.params; // Changed from 'id'
+    const { workspaceId } = await context.params; // Changed from 'id'
 
     const iWorkspace = await WorkspaceService.getWorkspaceById(workspaceId);
 

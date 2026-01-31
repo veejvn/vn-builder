@@ -18,7 +18,46 @@ export interface PaginationData {
   pages: number;
 }
 
+export interface Workspace {
+  _id: string;
+  name: string;
+  description?: string;
+  owner: User | string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface Project {
+  _id: string;
+  name: string;
+  description?: string;
+  workspaceId: Workspace | string;
+  owner: User | string;
+  status: "DRAFT" | "PUBLISHED";
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface DashboardStats {
+  totalUsers: number;
+  totalWorkspaces: number;
+  totalProjects: number;
+  activeUsers: number; // Users not soft deleted
+}
+
 export interface GetUsersResponse {
   users: User[];
+  pagination: PaginationData;
+}
+
+export interface GetWorkspacesResponse {
+  workspaces: Workspace[];
+  pagination: PaginationData;
+}
+
+export interface GetProjectsResponse {
+  projects: Project[];
   pagination: PaginationData;
 }

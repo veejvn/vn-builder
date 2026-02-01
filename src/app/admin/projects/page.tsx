@@ -15,48 +15,32 @@ import {
 import { adminApi } from "@/features/admin/admin.api";
 import { Project, PaginationData } from "@/features/admin/admin.types";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAdminProjects, useAdminDeleteProject } from "@/features/admin/hooks/useAdminData";
+
 
 export default function ProjectsManagementPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [pagination, setPagination] = useState<PaginationData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 500);
 
-  const fetchProjects = async () => {
-    setLoading(true);
-    try {
-      const response = await adminApi.getProjects({
-        page,
-        search: debouncedSearch,
-        limit: 10,
-      });
-      setProjects(response.projects);
-      setPagination(response.pagination);
-    } catch (error) {
-      console.error("Failed to fetch projects:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, isLoading: loading, isError } = useAdminProjects({
+    page,
+    search: debouncedSearch,
+    limit: 10,
+  });
 
-  useEffect(() => {
-    fetchProjects();
-  }, [page, debouncedSearch]);
+  const projects = data?.projects || [];
+  const pagination = data?.pagination || null;
 
-  const handleDeleteProject = async (id: string) => {
+  const { mutate: deleteProject } = useAdminDeleteProject();
+
+  const handleDeleteProject = (id: string) => {
     if (
       confirm(
         "Are you sure you want to delete this project? This will soft delete it."
       )
     ) {
-      try {
-        await adminApi.deleteProject(id);
-        fetchProjects();
-      } catch (error) {
-        alert("Failed to delete project");
-      }
+      deleteProject(id);
     }
   };
 

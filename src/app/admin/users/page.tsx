@@ -20,39 +20,30 @@ import { adminApi } from "@/features/admin/admin.api";
 import { User, PaginationData } from "@/features/admin/admin.types";
 import { useDebounce } from "@/hooks/useDebounce";
 import { UserModal } from "@/features/admin/components/UserModal";
+import { useAdminUsers, useAdminDeleteUser } from "@/features/admin/hooks/useAdminData";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [pagination, setPagination] = useState<PaginationData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 500);
+
+  const { data, isLoading: loading, isError } = useAdminUsers({
+    page,
+    search: debouncedSearch,
+    limit: 10,
+  });
+
+  const users = data?.users || [];
+  const pagination = data?.pagination || null;
+
+  const { mutate: deleteUser } = useAdminDeleteUser();
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await adminApi.getUsers({
-        page,
-        search: debouncedSearch,
-        limit: 10,
-      });
-      setUsers(response.users);
-      setPagination(response.pagination);
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [page, debouncedSearch]);
+  // Re-fetch users is automatic via invalidation in the hook
 
   const renderRoleIcon = (role: string) => {
     switch (role) {
@@ -82,15 +73,29 @@ export default function UserManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleDisableUser = async (id: string) => {
+  const handleDisableUser = (id: string) => {
     if (confirm("Are you sure you want to disable this user?")) {
-      try {
-        await adminApi.deleteUser(id);
-        fetchUsers();
-      } catch (error) {
-        alert("Failed to disable user");
-      }
+      deleteUser(id);
     }
+  };
+
+  const handleSuccess = () => {
+    // Invalidation happens in hooks or parent, but if modal takes props:
+    // Actually the modal likely calls API directly currently.
+    // Ideally we pass a callback that invalidates queries.
+    // Or simpler: just invalidate queries here.
+    // QueryClient invalidation...
+    // The modal uses onSuccess callback.
+    // So we need queryClient here.
+  };
+  // Wait, I can just use queryClient in handleSuccess or better yet
+  // If hooks handle invalidation, I just need to trigger a refetch if needed.
+  // But useQuery refetches automatically on mount/updated keys.
+  // For mutations (add/edit user via modal), if modal does API call, we need to invalidate manually upon success.
+
+  const queryClient = useQueryClient();
+  const onModalSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
   };
 
   return (
@@ -217,11 +222,10 @@ export default function UserManagementPage() {
                     <td className="py-3 px-4">
                       <div
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium 
-                      ${
-                        user.role === "ADMIN"
-                          ? "border-purple-500/20 bg-purple-500/10 text-purple-400"
-                          : "border-slate-500/20 bg-slate-500/10 text-slate-400"
-                      }`}
+                      ${user.role === "ADMIN"
+                            ? "border-purple-500/20 bg-purple-500/10 text-purple-400"
+                            : "border-slate-500/20 bg-slate-500/10 text-slate-400"
+                          }`}
                       >
                         {renderRoleIcon(user.role)}
                         {user.role}
@@ -230,13 +234,12 @@ export default function UserManagementPage() {
                     <td className="py-3 px-4">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border
-                         ${
-                          user.status === "ACTIVE"
+                         ${user.status === "ACTIVE"
                             ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                             : user.status === "INACTIVE"
-                            ? "bg-slate-700/30 text-slate-400 border-slate-600/30"
-                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                        }`}
+                              ? "bg-slate-700/30 text-slate-400 border-slate-600/30"
+                              : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                          }`}
                       >
                         {user.status}
                       </span>
@@ -308,7 +311,7 @@ export default function UserManagementPage() {
       <UserModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchUsers}
+        onSuccess={onModalSuccess}
         user={selectedUser}
       />
     </>

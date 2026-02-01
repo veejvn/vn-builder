@@ -2,23 +2,18 @@ import React from 'react';
 import { NodeProps } from '../schema/node.types';
 import { cn } from '@/lib/utils';
 
-export const BoxComponent = ({ children, className, style, ...props }: NodeProps & { children?: React.ReactNode }) => {
-    const isFlex = props.display === 'flex' || !props.display; // Mặc định là flex nếu không chỉ định
-
+export const GridComponent = ({ children, className, style, ...props }: NodeProps & { children?: React.ReactNode }) => {
     return (
         <div
             className={cn(
-                'min-h-[50px] transition-all',
-                isFlex ? 'flex' : 'block',
+                'grid min-h-[50px] transition-all',
                 props.debug !== false && 'border border-dashed border-gray-200 p-4',
                 className
             )}
             style={{
-                // Flex properties
-                flexDirection: isFlex ? (props.direction || 'row') : undefined,
-                justifyContent: isFlex ? (props.justify || 'flex-start') : undefined,
-                alignItems: isFlex ? (props.align || 'stretch') : undefined,
-                gap: isFlex ? (props.gap || '0px') : undefined,
+                display: 'grid',
+                gridTemplateColumns: props.gridTemplateColumns || 'repeat(2, 1fr)',
+                gap: props.gap || '10px',
 
                 // Box properties
                 padding: props.padding,

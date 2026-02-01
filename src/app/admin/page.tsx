@@ -1,27 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Users, Briefcase, FileCode, Activity, Loader2 } from "lucide-react";
-import { adminApi } from "@/features/admin/admin.api";
 import { DashboardStats } from "@/features/admin/admin.types";
+import { useAdminStats } from "@/features/admin/hooks/useAdminData";
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await adminApi.getStats();
-        setStats(data);
-      } catch (error) {
-        console.error("Failed to fetch dashboard stats", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
+  const { data: stats, isLoading: loading, isError: error } = useAdminStats();
 
   const statCards = [
     {
@@ -53,6 +38,14 @@ export default function AdminDashboardPage() {
       description: "All services operational",
     },
   ];
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-12 text-red-500">
+        Failed to load dashboard stats
+      </div>
+    );
+  }
 
   return (
     <>

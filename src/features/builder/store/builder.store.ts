@@ -15,6 +15,7 @@ interface BuilderState {
     moveNode: (activeId: string, overId: string) => void;
     deleteNode: (id: string) => void;
     selectNode: (id: string | null) => void;
+    loadSchemaFromIndexedDB: (projectId: string) => Promise<boolean>; // Returns true if loaded
 }
 
 export const DEFAULT_SCHEMA: BuilderSchema = {
@@ -148,4 +149,21 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     },
 
     selectNode: (id) => set({ activeNodeId: id }),
+    loadSchemaFromIndexedDB: async (projectId) => {
+        if (typeof window === 'undefined') return false;
+
+        try {
+            const { indexedDBService } = await import('../services/indexedDB.service');
+            const schema = await indexedDBService.loadSchema(projectId);
+
+            if (schema && typeof schema === 'object' && schema.root) {
+                set({ schema });
+                return true;
+            }
+        } catch (error) {
+            console.error('Failed to load schema from IndexedDB:', error);
+        }
+
+        return false;
+    },
 }));

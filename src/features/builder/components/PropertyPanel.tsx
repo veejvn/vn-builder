@@ -16,9 +16,19 @@ export const PropertyPanel = () => {
     // Sync form state when active node changes
     useEffect(() => {
         if (activeNode) {
-            setFormState(activeNode.props || {});
+            // Only update formState if activeNodeId changed or if current formState is empty
+            // This avoids the store update loop clobbering local changes while typing
+            const newNodeProps = activeNode.props || {};
+            const currentPropsStr = JSON.stringify(formState);
+            const newNodePropsStr = JSON.stringify(newNodeProps);
+
+            if (newNodePropsStr !== currentPropsStr) {
+                setFormState(newNodeProps);
+            }
+        } else if (Object.keys(formState).length > 0) {
+            setFormState({});
         }
-    }, [activeNodeId, activeNode]);
+    }, [activeNodeId, activeNode]); // We still need activeNode for external changes, but the string check prevents loops
 
     const handleChange = (key: string, value: any) => {
         if (!activeNodeId) return;

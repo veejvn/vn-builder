@@ -36,28 +36,46 @@ const Builder = () => {
 
   const setSchema = useBuilderStore((state) => state.setSchema);
   const initializeSchema = useBuilderStore((state) => state.initializeSchema);
+  const loadSchemaFromIndexedDB = useBuilderStore((state) => state.loadSchemaFromIndexedDB);
   const { status, save, isDirty, setInitialState } = useManualSave(projectId);
+
+  const loadingStarted = React.useRef(false);
 
   // Reset loading state when projectId changes
   useEffect(() => {
     setIsLoaded(false);
+    loadingStarted.current = false;
     initializeSchema();
   }, [projectId, initializeSchema]);
 
   // Load project data
   useEffect(() => {
-    if (project) {
-      if (project.schema && Object.keys(project.schema).length > 0) {
-        setSchema(project.schema);
-        setInitialState(project.schema);
-      } else {
-        // For new projects or empty schema, set the state to default
-        // This prevents auto-save from thinking it's a change if it's already default
-        setInitialState(DEFAULT_SCHEMA);
-      }
-      setIsLoaded(true);
+    if (project && !isLoaded && !loadingStarted.current) {
+      loadingStarted.current = true;
+      const loadData = async () => {
+        // Try resolving from IndexedDB first to recover unsaved changes
+        const loadedFromIDB = await loadSchemaFromIndexedDB(projectId);
+
+        if (loadedFromIDB) {
+          // If loaded from IDB, we still set the initial state from DB to ensure "isDirty" is calculated correctly
+          // This will make the UI show "Unsaved changes" immediately
+          setInitialState(project.schema && Object.keys(project.schema).length > 0 ? project.schema : DEFAULT_SCHEMA);
+        } else {
+          // Fallback to DB data
+          if (project.schema && Object.keys(project.schema).length > 0) {
+            setSchema(project.schema);
+            setInitialState(project.schema);
+          } else {
+            // For new projects or empty schema, set the state to default
+            setInitialState(DEFAULT_SCHEMA);
+          }
+        }
+        setIsLoaded(true);
+      };
+
+      loadData();
     }
-  }, [project, setSchema, setInitialState]);
+  }, [project, isLoaded, setSchema, setInitialState, loadSchemaFromIndexedDB, projectId]);
 
   const renderComponentIcon = (iconName: string) => {
     switch (iconName) {
@@ -151,8 +169,8 @@ const Builder = () => {
                 onClick={save}
                 disabled={status === 'saving'}
                 className={`flex items-center justify-center rounded-lg h-8 px-3 text-xs font-bold tracking-wide transition-colors ${isDirty
-                    ? "bg-primary hover:bg-primary/90 text-white"
-                    : "bg-[#282f39] text-[#9da8b9] cursor-not-allowed hover:bg-[#323b47]"
+                  ? "bg-primary hover:bg-primary/90 text-white"
+                  : "bg-[#282f39] text-[#9da8b9] cursor-not-allowed hover:bg-[#323b47]"
                   }`}
               >
                 {status === 'saving' ? 'Saving...' : 'Save'}

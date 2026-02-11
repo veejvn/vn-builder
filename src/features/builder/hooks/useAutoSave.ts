@@ -15,14 +15,23 @@ export const useManualSave = (projectId: string) => {
     const currentSchemaString = JSON.stringify(schema);
     const isDirty = lastSavedSchema !== '' && currentSchemaString !== lastSavedSchema;
 
+    // Debounced save to IndexedDB
     useEffect(() => {
-        if (isDirty) {
+        if (isDirty && projectId && schema) {
             setStatus('unsaved');
+
+            const saveToIndexedDB = async () => {
+                const { indexedDBService } = await import('../services/indexedDB.service');
+                await indexedDBService.saveSchema(projectId, schema);
+            };
+
+            const timeoutId = setTimeout(saveToIndexedDB, 1000); // Debounce 1s
+
+            return () => clearTimeout(timeoutId);
         } else if (status === 'unsaved') {
-            // If we undid changes back to original state
             setStatus('saved');
         }
-    }, [isDirty, status]);
+    }, [isDirty, status, projectId, schema]);
 
     const save = useCallback(() => {
         if (!projectId) return;
@@ -35,9 +44,14 @@ export const useManualSave = (projectId: string) => {
                 data: { schema }
             },
             {
-                onSuccess: () => {
+                onSuccess: async () => {
                     setStatus('saved');
                     setLastSavedSchema(JSON.stringify(schema));
+
+                    // Clear IndexedDB on successful save
+                    const { indexedDBService } = await import('../services/indexedDB.service');
+                    await indexedDBService.clearSchema(projectId);
+
                     toast.success('Project saved successfully');
                 },
                 onError: (error) => {

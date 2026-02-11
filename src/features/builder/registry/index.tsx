@@ -7,6 +7,9 @@ import { BoxComponent } from './Box';
 import { ImageComponent } from './Image';
 import { GridComponent } from './Grid';
 import { InputComponent } from './Input';
+import { SectionComponent } from './Section';
+import { HeaderComponent } from './Header';
+import { FooterComponent } from './Footer';
 import { IconComponent } from './Icon';
 
 export const ComponentRegistry: Record<NodeType, React.FC<any>> = {
@@ -19,9 +22,9 @@ export const ComponentRegistry: Record<NodeType, React.FC<any>> = {
     grid: GridComponent,
     input: InputComponent,
     icon: IconComponent,
-    section: (props) => <BoxComponent {...props} tag="section" />,
-    header: (props) => <BoxComponent {...props} tag="header" />,
-    footer: (props) => <BoxComponent {...props} tag="footer" />,
+    section: SectionComponent,
+    header: HeaderComponent,
+    footer: FooterComponent,
 };
 
 export const getComponent = (type: NodeType) => {

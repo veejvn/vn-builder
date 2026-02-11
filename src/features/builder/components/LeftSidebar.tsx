@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LayoutTree } from './LayoutTree';
-import { Search, Type, MousePointer2, LayoutTemplate, Box, FileImage, Layers, Plus } from 'lucide-react';
+import { Search, Type, MousePointer2, LayoutTemplate, Box, FileImage, Layers, Plus, ALargeSmall, Star, SquareDashed, Heading, Footprints } from 'lucide-react';
 import { useBuilderStore } from '../store/builder.store';
 
 type Tab = 'add' | 'layers' | 'assets';
@@ -14,82 +14,69 @@ export const LeftSidebar = () => {
     // If we want to add to root by default if nothing selected:
     const parentId = activeNodeId || 'root';
 
-    const handleAddNode = (type: 'text' | 'button' | 'container' | 'image' | 'grid' | 'flex') => {
+    const handleAddNode = (type: 'text' | 'button' | 'container' | 'image' | 'grid' | 'flex' | 'input' | 'icon' | 'section' | 'header' | 'footer') => {
         addNode(parentId, type, { content: `New ${type}` });
     };
 
-    const renderAddTab = () => (
-        <div className="p-4 grid grid-cols-2 gap-3">
-            <button
-                onClick={() => handleAddNode('text')}
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <Type size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">Text</span>
-            </button>
+    const renderAddTab = () => {
+        const categories = [
+            {
+                title: 'Layout',
+                items: [
+                    { type: 'container', icon: LayoutTemplate, label: 'Container' },
+                    { type: 'section', icon: SquareDashed, label: 'Section' },
+                    { type: 'header', icon: Heading, label: 'Header' },
+                    { type: 'footer', icon: Footprints, label: 'Footer' },
+                    { type: 'flex', icon: Layers, label: 'Flex' },
+                    { type: 'grid', icon: Box, label: 'Grid' },
+                ]
+            },
+            {
+                title: 'Basic',
+                items: [
+                    { type: 'text', icon: Type, label: 'Text' },
+                    { type: 'button', icon: MousePointer2, label: 'Button' },
+                    { type: 'icon', icon: Star, label: 'Icon' },
+                ]
+            },
+            {
+                title: 'Form',
+                items: [
+                    { type: 'input', icon: ALargeSmall, label: 'Input' },
+                ]
+            },
+            {
+                title: 'Media',
+                items: [
+                    { type: 'image', icon: FileImage, label: 'Image' },
+                ]
+            }
+        ];
 
-            <button
-                onClick={() => handleAddNode('button')}
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <MousePointer2 size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">Button</span>
-            </button>
-
-            <button
-                onClick={() => handleAddNode('container')}
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <LayoutTemplate size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">Container</span>
-            </button>
-
-            <button
-                onClick={() => handleAddNode('flex')}
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <Layers size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">Flex</span>
-            </button>
-
-            <button
-                onClick={() => handleAddNode('image')}
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <FileImage size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">Image</span>
-            </button>
-
-            <button
-                onClick={() => handleAddNode('grid')}
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <Box size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">Grid</span>
-            </button>
-
-            <button
-                className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group opacity-50 cursor-not-allowed"
-            >
-                <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
-                    <Box size={20} />
-                </div>
-                <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">More...</span>
-            </button>
-        </div>
-    );
+        return (
+            <div className="p-4 space-y-6">
+                {categories.map((category) => (
+                    <div key={category.title}>
+                        <h3 className="text-xs font-semibold text-[#5c6b7f] uppercase tracking-wider mb-3 px-1">{category.title}</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            {category.items.map((item) => (
+                                <button
+                                    key={item.type}
+                                    onClick={() => handleAddNode(item.type as any)}
+                                    className="flex flex-col items-center justify-center p-4 bg-[#1c2128] hover:bg-[#282f39] border border-[#282f39] rounded-lg transition-colors gap-2 group"
+                                >
+                                    <div className="p-2 rounded-full bg-[#2d333b] group-hover:bg-[#373e47] text-white">
+                                        <item.icon size={20} />
+                                    </div>
+                                    <span className="text-xs font-medium text-[#9da8b9] group-hover:text-white">{item.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
 
     const renderAssetsTab = () => (
         <div className="p-4">

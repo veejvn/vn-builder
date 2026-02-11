@@ -1,64 +1,64 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useBuilderStore } from '../store/builder.store';
 import { useUpdateProject } from '@/features/project/hooks/useProjects';
 import { toast } from 'sonner';
 
-type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'unsaved';
 
-export const useAutoSave = (projectId: string, enabled: boolean = true) => {
+export const useManualSave = (projectId: string) => {
     const schema = useBuilderStore((state) => state.schema);
-    const [status, setStatus] = useState<SaveStatus>('idle');
+    const [status, setStatus] = useState<SaveStatus>('saved');
     const [lastSavedSchema, setLastSavedSchema] = useState<string>('');
     const { mutate, isPending } = useUpdateProject();
 
-    // Use a ref to track the timeout so we can clear it
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Check for changes
+    const currentSchemaString = JSON.stringify(schema);
+    const isDirty = lastSavedSchema !== '' && currentSchemaString !== lastSavedSchema;
 
     useEffect(() => {
-        if (!enabled) return;
+        if (isDirty) {
+            setStatus('unsaved');
+        } else if (status === 'unsaved') {
+            // If we undid changes back to original state
+            setStatus('saved');
+        }
+    }, [isDirty, status]);
 
-        // Skip initial empty schema or if it matches last saved
-        const currentSchemaString = JSON.stringify(schema);
-        if (currentSchemaString === lastSavedSchema) return;
+    const save = useCallback(() => {
+        if (!projectId) return;
 
         setStatus('saving');
 
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
-        timeoutRef.current = setTimeout(() => {
-            mutate(
-                {
-                    projectId,
-                    data: { schema }
+        mutate(
+            {
+                projectId,
+                data: { schema }
+            },
+            {
+                onSuccess: () => {
+                    setStatus('saved');
+                    setLastSavedSchema(JSON.stringify(schema));
+                    toast.success('Project saved successfully');
                 },
-                {
-                    onSuccess: () => {
-                        setStatus('saved');
-                        setLastSavedSchema(currentSchemaString);
-                        setTimeout(() => setStatus('idle'), 2000);
-                    },
-                    onError: (error) => {
-                        console.error('Auto-save error:', error);
-                        setStatus('error');
-                        // toast handled in the mutation hook, but we can add specific one here if needed
-                    }
+                onError: (error) => {
+                    console.error('Save error:', error);
+                    setStatus('error');
+                    toast.error('Failed to save project');
                 }
-            );
-        }, 1000); // 1 second debounce
-
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
             }
-        };
-    }, [schema, projectId, mutate, enabled, lastSavedSchema]); // Added enabled and lastSavedSchema to deps
+        );
+    }, [projectId, schema, mutate]);
 
-    // Helper to sync initial state
+    // Helper to sync initial state when project loads
     const setInitialState = (initialSchema: any) => {
         setLastSavedSchema(JSON.stringify(initialSchema));
+        setStatus('saved');
     }
 
-    return { status, setInitialState };
+    return {
+        save,
+        status: isPending ? 'saving' : status,
+        isDirty,
+        setInitialState
+    };
 };

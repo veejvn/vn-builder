@@ -1,5 +1,5 @@
 
-export type NodeType = 'page' | 'container' | 'text' | 'button' | 'image' | 'flex' | 'grid';
+export type NodeType = 'page' | 'container' | 'text' | 'button' | 'image' | 'flex' | 'grid' | 'input' | 'icon' | 'section' | 'header' | 'footer';
 
 export type NodeProps = Record<string, any>;
 

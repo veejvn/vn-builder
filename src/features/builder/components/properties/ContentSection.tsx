@@ -10,7 +10,7 @@ interface ContentSectionProps {
 }
 
 export const ContentSection = ({ nodeType, formState, handleChange, handleStyleChange }: ContentSectionProps) => {
-    if (nodeType !== 'text' && nodeType !== 'button' && nodeType !== 'image') return null;
+    if (nodeType !== 'text' && nodeType !== 'button' && nodeType !== 'image' && nodeType !== 'icon' && nodeType !== 'input') return null;
 
     return (
         <div className="border-b border-[#282f39]">
@@ -66,6 +66,82 @@ export const ContentSection = ({ nodeType, formState, handleChange, handleStyleC
                                 <option value="fill">Fill</option>
                                 <option value="none">None</option>
                             </select>
+                        </div>
+                    </>
+                )}
+
+                {nodeType === 'icon' && (
+                    <>
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-[#9da8b9]">Icon Name (Lucide)</label>
+                            <input
+                                type="text"
+                                value={formState.icon ?? ''}
+                                onChange={(e) => handleChange('icon', e.target.value)}
+                                className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                                placeholder="e.g. Star, Heart, User..."
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <label className="text-[10px] text-[#9da8b9]">Size</label>
+                                <input
+                                    type="number"
+                                    value={formState.size ?? ''}
+                                    onChange={(e) => handleChange('size', parseInt(e.target.value) || 0)}
+                                    className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] text-[#9da8b9]">Color</label>
+                                <input
+                                    type="text"
+                                    value={formState.color ?? ''}
+                                    onChange={(e) => handleChange('color', e.target.value)}
+                                    className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                                    placeholder="currentColor"
+                                />
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {nodeType === 'input' && (
+                    <>
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-[#9da8b9]">Input Type</label>
+                            <select
+                                value={formState.type ?? 'text'}
+                                onChange={(e) => handleChange('type', e.target.value)}
+                                className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                            >
+                                <option value="text">Text</option>
+                                <option value="number">Number</option>
+                                <option value="email">Email</option>
+                                <option value="password">Password</option>
+                                <option value="tel">Telephone</option>
+                                <option value="url">URL</option>
+                                <option value="date">Date</option>
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-[#9da8b9]">Placeholder</label>
+                            <input
+                                type="text"
+                                value={formState.placeholder || ''}
+                                onChange={(e) => handleChange('placeholder', e.target.value)}
+                                className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                                placeholder="Type here..."
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-[#9da8b9]">Default Value</label>
+                            <input
+                                type="text"
+                                value={formState.defaultValue || ''}
+                                onChange={(e) => handleChange('defaultValue', e.target.value)}
+                                className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                            />
                         </div>
                     </>
                 )}

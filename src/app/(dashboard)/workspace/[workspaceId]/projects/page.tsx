@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Project } from "@/features/project/project.types";
-import { projectApi } from "@/features/project/project.api";
 import {
-  Settings,
   Plus,
   Search,
   Loader2,
@@ -23,54 +21,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useProjects, PROJECT_KEYS } from "@/features/project/hooks/useProjects";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Projects: React.FC = () => {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const params = useParams();
   const workspaceId = params.workspaceId as string;
+  const queryClient = useQueryClient();
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: projects = [], isLoading: loading, isError: error } = useProjects(workspaceId);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const fetchedProjects = await projectApi.getWorkspaceProjects(
-        workspaceId
-      );
-      console.log("Fetched Projects:", fetchedProjects);
-      setProjects(fetchedProjects);
-    } catch (err) {
-      setError("Failed to load projects.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      if (workspaceId) {
-        fetchProjects();
-      } else {
-        setError("Workspace ID is missing.");
-        setLoading(false);
-      }
-    } else if (status === "unauthenticated") {
-      router.push("/login");
-    } else if (status === "loading") {
-      setLoading(true);
-    }
-  }, [status, router, workspaceId]);
+  if (status === "unauthenticated") {
+    router.push("/login");
+  }
 
   const handleCreateSuccess = () => {
-    fetchProjects(); // Refresh the list after successful creation
+    queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.workspace(workspaceId) });
   };
 
   const handleEditClick = (project: Project) => {
@@ -84,12 +57,12 @@ const Projects: React.FC = () => {
   };
 
   const handleEditSuccess = () => {
-    fetchProjects();
+    queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.workspace(workspaceId) });
     setSelectedProject(null);
   };
 
   const handleDeleteSuccess = () => {
-    fetchProjects();
+    queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.workspace(workspaceId) });
     setSelectedProject(null);
   };
 
@@ -106,7 +79,7 @@ const Projects: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading || status === "loading") {
     return (
       <div className="flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-[#111418] dark:text-white justify-center items-center">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -114,10 +87,10 @@ const Projects: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error || !workspaceId) {
     return (
       <div className="flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-red-500 justify-center items-center">
-        <p>{error}</p>
+        <p>Failed to load projects.</p>
       </div>
     );
   }

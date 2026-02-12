@@ -11,8 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { projectApi } from "../project.api";
-import { toast } from "sonner";
+import { useCreateProject } from "../hooks/useProjects";
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
@@ -29,27 +28,22 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { mutate, isPending, error } = useCreateProject();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
 
-    try {
-      await projectApi.createProject(workspaceId, { name, description });
-      toast.success(`Your new project \"${name}\" has been created.`);
-      onSuccess();
-      onClose();
-      setName("");
-      setDescription("");
-    } catch (err: any) {
-      setError(err.message || "Failed to create project.");
-      toast.error(err.message || "Failed to create project.");
-    } finally {
-      setLoading(false);
-    }
+    mutate(
+      { workspaceId, name, description },
+      {
+        onSuccess: () => {
+          onSuccess();
+          onClose();
+          setName("");
+          setDescription("");
+        },
+      }
+    );
   };
 
   return (
@@ -94,7 +88,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             <div className="col-span-4 text-center" style={{ minHeight: '1.5rem' }}> {/* Reserve space for error message */}
               {error && (
                 <p className="text-red-500 text-sm">
-                  {error}
+                  {error.message || "Failed to create project"}
                 </p>
               )}
             </div>
@@ -104,12 +98,12 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={loading}
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Project"}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Creating..." : "Create Project"}
             </Button>
           </DialogFooter>
         </form>

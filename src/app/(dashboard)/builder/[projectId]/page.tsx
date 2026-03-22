@@ -8,16 +8,10 @@ import {
   Smartphone,
   Eye,
   Code,
-  Square,
-  Type,
-  AlignLeft,
-  MousePointer2,
-  Image as ImageIcon,
   Undo2,
   Redo2,
 } from "lucide-react";
 import { Canvas } from "@/features/builder/components/Canvas";
-import { LayoutTree } from "@/features/builder/components/LayoutTree";
 import { PropertyPanel } from "@/features/builder/components/PropertyPanel";
 import { LeftSidebar } from "@/features/builder/components/LeftSidebar";
 import { useBuilderStore } from "@/features/builder/store/builder.store";
@@ -39,19 +33,20 @@ const Builder = () => {
   const loadSchemaFromIndexedDB = useBuilderStore((state) => state.loadSchemaFromIndexedDB);
   const { status, save, isDirty, setInitialState } = useManualSave(projectId);
 
-  const loadingStarted = React.useRef(false);
+  const loadingStarted = React.useRef<string | null>(null);
 
-  // Reset loading state when projectId changes
+  // Reset state properly when projectId changes
   useEffect(() => {
     setIsLoaded(false);
-    loadingStarted.current = false;
+    loadingStarted.current = null;
     initializeSchema();
-  }, [projectId, initializeSchema]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   // Load project data
   useEffect(() => {
-    if (project && !isLoaded && !loadingStarted.current) {
-      loadingStarted.current = true;
+    if (project && !isLoaded && loadingStarted.current !== projectId) {
+      loadingStarted.current = projectId;
       const loadData = async () => {
         // Try resolving from IndexedDB first to recover unsaved changes
         const loadedFromIDB = await loadSchemaFromIndexedDB(projectId);
@@ -77,20 +72,7 @@ const Builder = () => {
     }
   }, [project, isLoaded, setSchema, setInitialState, loadSchemaFromIndexedDB, projectId]);
 
-  const renderComponentIcon = (iconName: string) => {
-    switch (iconName) {
-      case "title":
-        return <Type size={18} />;
-      case "notes":
-        return <AlignLeft size={18} />;
-      case "smart_button":
-        return <MousePointer2 size={18} />;
-      case "image":
-        return <ImageIcon size={18} />;
-      default:
-        return <Square size={18} />;
-    }
-  };
+
 
   const handleBack = () => {
     if (project?.workspaceId) {

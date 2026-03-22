@@ -1,69 +1,100 @@
 "use client";
 
-import React from "react";
-import { Settings, Plus, Search } from "lucide-react";
-import { View } from "@/types";
+import { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Project } from "@/features/project/project.types";
+import {
+  Plus,
+  Search,
+  Loader2,
+  MoreVertical,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import CreateProjectDialog from "@/features/project/components/CreateProjectDialog";
+import EditProjectDialog from "@/features/project/components/EditProjectDialog";
+import DeleteProjectDialog from "@/features/project/components/DeleteProjectDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useProjects, PROJECT_KEYS } from "@/features/project/hooks/useProjects";
+import { useQueryClient } from "@tanstack/react-query";
 
-interface ProjectsProps {
-  onNavigate: (view: View) => void;
-  onOpenBuilder: () => void;
-}
+const Projects: React.FC = () => {
+  const { status } = useSession();
+  const router = useRouter();
+  const params = useParams();
+  const workspaceId = params.workspaceId as string;
+  const queryClient = useQueryClient();
 
-const projects: Project[] = [
-  {
-    id: "1",
-    name: "Marketing Landing Page",
-    url: "vnbuilder.com/marketing-lp",
-    thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDoUYgaFfRp_QNNwSYMvSctlzbdK3CWzKzKztj1CsEx0XNZq3dfPbxSw1aPWSKsYsVVQ8Zz-qrZKxj1GgFf5XV_wI2DShHaFV0FwKzwK_piVpJYBMFI1dZLDv8XFwUTgNH4tqAKdqoot4un_zygo0mGyyt3rSXzPerY_Qu45h0ExnVcrG439Jdx_adb50ING8rQ4H2l6HTfBONgxHEinhztiV1__r1jsQFC5DmiDXti4s9siA8brSxYHKKxgSirhFiB2r73weo-77E",
-    status: "Live",
-    statusColor: "green",
-    updated: "2h ago",
-  },
-  {
-    id: "2",
-    name: "SaaS Dashboard V2",
-    url: "app.vnbuilder.com/dashboard",
-    thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAMhs-23b3wl5F6_1EiPfi4CFKBOPa8-6L7eJ3dQwAOI83WV46GSfjCrykBNlSB32uwMYBHXmWjd0Y0SmSRbp8JQ4VgBub-KzqdidY2SNmcVzkBHfoIFJX07FoQbNKGugpyvEs5M3gLoOZ9cJ4GCt76kUIJtBM4JLuIMZCwrKB10R0TlS22k2qPSl1kARmbqXjR3OvStsYiDxSJWwiemSqTjLDg_y7ucspqGv5V6FRuhnfg_dr-UfrSL_kdf0wazXoIa2IFgyZNFcE",
-    status: "Staging",
-    statusColor: "yellow",
-    updated: "1d ago",
-  },
-  {
-    id: "3",
-    name: "Personal Portfolio",
-    url: "alex-dev.vnbuilder.site",
-    thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD5qgJT4CUPt6yYt24-NUNcngEnoarYQrb9j1tYr2fIgNbFFfBb-BhOtgL-Zf7_AbdlEjAH3caBVqpQLcGm3HMsCq-62IPKNThTdlWqd7zVubKVgbfcks6YgzuvaPSbkVqgebgWBQ_KjxUG5i7eFHY5a1yBCnYWrl4Pkh7YpppCu4pQuDzztZht4u42O2oUL7WtJpbjoIs2A_nLADP0gYPCKgtGKDfMcD0FgdXMMOgFl7b-UqAAUTllQq2EvokoVGLV9sKXPg5jJiY",
-    status: "Draft",
-    statusColor: "gray",
-    updated: "3d ago",
-  },
-  {
-    id: "4",
-    name: "E-Commerce Storefront",
-    url: "shop.brandnew.com",
-    thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDrbFzhcZMmYksvZJ-sBUlvTCiHjUtj8W2axypoorzYHjBi7690t-vjRinL2vUg00Rt4kF3mZWGnd0XkYgPGNMbUFybty4iXYPUWp7Cn-Uhc6mMZnGShU8XRG2LVibUfAx4XgZHWu10pJqwgI0-N5VQeVYYBdKvnVYwUGkt7d2fiPBCiUuA0MKHIgt6LexnvQWgJayigZqlwS6TsIMyvWXKhSPiDZ132Zd0-uuFSqpqqmQIglaLDEWFX2I6n5AtliH9Zy_ntKNFDLE",
-    status: "Live",
-    statusColor: "green",
-    updated: "5d ago",
-  },
-  {
-    id: "5",
-    name: "Documentation Site",
-    url: "docs.api-service.io",
-    thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuB1UCJpxNUA2uIgRIN0f-ZW6LcwFt7BpkU753h2ZV3Aa9B1k8BrG3Nz9IN1LNHioODFCq7XHTCqVe6p4U20iG9HcxsuAMxYtcmKLX4Ui5fOqLg8Jm4sh3MF_NeDrqTyxg-sO6WtbKF8qxvkB91ic_c__VZ_7oRWa6MRvaBgOqeZUk2FmM4zJ0GFsi8ZEUPnMx9NvFvZOAg0GUFWRYzUiDGXCyuvSmXt6A1XLFnhtYurlpPsrupJsWXO816on4fFiERUtHeqNmYaVO8",
-    status: "Draft",
-    statusColor: "gray",
-    updated: "1w ago",
-  },
-];
+  const { data: projects = [], isLoading: loading, isError: error } = useProjects(workspaceId);
 
-const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  if (status === "unauthenticated") {
+    router.push("/login");
+  }
+
+  const handleCreateSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.workspace(workspaceId) });
+  };
+
+  const handleEditClick = (project: Project) => {
+    setSelectedProject(project);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.workspace(workspaceId) });
+    setSelectedProject(null);
+  };
+
+  const handleDeleteSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.workspace(workspaceId) });
+    setSelectedProject(null);
+  };
+
+  const getStatusColorClass = (statusColor: Project["statusColor"]) => {
+    switch (statusColor) {
+      case "green":
+        return "bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/20";
+      case "yellow":
+        return "bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20";
+      case "gray":
+        return "bg-gray-500/10 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/20";
+      default:
+        return "bg-gray-500/10 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/20";
+    }
+  };
+
+  if (loading || status === "loading") {
+    return (
+      <div className="flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-[#111418] dark:text-white justify-center items-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !workspaceId) {
+    return (
+      <div className="flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-red-500 justify-center items-center">
+        <p>Failed to load projects.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-[#111418] dark:text-white">
       <div className="flex h-full grow flex-col">
@@ -72,7 +103,7 @@ const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
             {/* Breadcrumbs */}
             <div className="flex flex-wrap gap-2 px-4 py-2">
               <button
-                onClick={() => onNavigate(View.WORKSPACES)}
+                onClick={() => router.push("/workspace")}
                 className="text-[#637588] dark:text-[#9da8b9] text-sm font-medium leading-normal hover:text-primary transition-colors"
               >
                 My Team Workspace
@@ -96,7 +127,10 @@ const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
                 </p>
               </div>
               <div className="flex gap-3 w-full md:w-auto">
-                <button className="flex-1 md:flex-none flex items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors shadow-lg shadow-primary/30">
+                <button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="flex-1 md:flex-none flex items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors shadow-lg shadow-primary/30"
+                >
                   <Plus size={20} className="mr-2" />
                   <span className="truncate">Create Project</span>
                 </button>
@@ -143,13 +177,9 @@ const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
                   >
                     <div className="absolute top-3 right-3">
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${
-                          project.statusColor === "green"
-                            ? "bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/20"
-                            : project.statusColor === "yellow"
-                            ? "bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
-                            : "bg-gray-500/10 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/20"
-                        }`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${getStatusColorClass(
+                          project.statusColor
+                        )}`}
                       >
                         {project.status}
                       </span>
@@ -169,14 +199,34 @@ const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
                         Updated {project.updated}
                       </span>
                       <div className="flex gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              aria-label="Project Actions"
+                              className="p-2 rounded-lg hover:bg-[#f0f2f4] dark:hover:bg-[#282f39] text-[#637588] dark:text-[#9da8b9] transition-colors"
+                            >
+                              <MoreVertical size={20} />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(project)}
+                              className="cursor-pointer"
+                            >
+                              <Edit size={16} className="mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(project)}
+                              className="cursor-pointer text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 size={16} className="mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <button
-                          aria-label="Settings"
-                          className="p-2 rounded-lg hover:bg-[#f0f2f4] dark:hover:bg-[#282f39] text-[#637588] dark:text-[#9da8b9] transition-colors"
-                        >
-                          <Settings size={20} />
-                        </button>
-                        <button
-                          onClick={onOpenBuilder}
+                          onClick={() => router.push(`/builder/${project.id}`)}
                           className="px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold transition-colors shadow-sm"
                         >
                           Open Builder
@@ -188,7 +238,7 @@ const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
               ))}
 
               {/* Create New Placeholder */}
-              <div className="group flex flex-col rounded-xl overflow-hidden bg-[#f6f7f8] dark:bg-[#161b22] border border-dashed border-[#dce0e5] dark:border-[#282f39] hover:border-primary dark:hover:border-primary cursor-pointer transition-all duration-200 h-full min-h-75">
+              <button onClick={() => setIsCreateDialogOpen(true)} className="group flex flex-col rounded-xl overflow-hidden bg-[#f6f7f8] dark:bg-[#161b22] border border-dashed border-[#dce0e5] dark:border-[#282f39] hover:border-primary dark:hover:border-primary cursor-pointer transition-all duration-200 h-full min-h-75">
                 <div className="flex flex-col flex-1 items-center justify-center gap-4 p-8 text-center">
                   <div className="flex items-center justify-center size-16 rounded-full bg-white dark:bg-[#1c2027] text-primary shadow-sm group-hover:scale-110 transition-transform duration-200">
                     <Plus size={32} />
@@ -202,11 +252,34 @@ const Projects: React.FC<ProjectsProps> = ({ onNavigate, onOpenBuilder }) => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
       </div>
+      <CreateProjectDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={handleCreateSuccess}
+        workspaceId={workspaceId}
+      />
+      {selectedProject && (
+        <EditProjectDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSuccess={handleEditSuccess}
+          project={selectedProject}
+        />
+      )}
+      {selectedProject && (
+        <DeleteProjectDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onSuccess={handleDeleteSuccess}
+          projectId={selectedProject.id}
+          projectName={selectedProject.name}
+        />
+      )}
     </div>
   );
 };

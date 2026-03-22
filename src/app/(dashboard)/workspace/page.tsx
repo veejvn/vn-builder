@@ -1,7 +1,10 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Workspace } from "@/features/workspace/workspace.types";
+import { workspaceApi } from "@/features/workspace/workspace.api";
 import {
   LayoutDashboard,
   Plus,
@@ -14,77 +17,46 @@ import {
   Building2,
   Rocket,
   Megaphone,
+  Loader2,
 } from "lucide-react";
+import CreateWorkspaceDialog from "@/features/workspace/components/CreateWorkspaceDialog";
 
-interface WorkspacesProps {
-  onEnterWorkspace: () => void;
-}
+const Workspaces = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-// Dummy Data
-const workspaces: Workspace[] = [
-  {
-    id: "1",
-    name: "Personal Projects",
-    icon: "user",
-    colorClass:
-      "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
-    updated: "2h ago",
-    role: "Owner",
-    plan: "Free Plan",
-    activeProjects: 3,
-    members: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD4BzMl2OPg1oeQfsUzN27YRo_vu-JoZbYSUjXiuxXfEPmWfx0ugDLGpSIJnPivaybQdb8K1xWUwt2hJjRoULISv5bSPISb3yUBZZqeOk8ohABuKDihCe0NELDU5lMDDKRBWa78oxGnh6iQiGNw7rNmgqprQ7hztrad_0wyVBN1CK635XyqL6q5uwKusUOIifmUX87MO1fCn2S-w3wNp3QYg6QBA1ZrprKdcsrkTmG_k8uepJtP46MmbBSQXWdtldG5bDJY3A9lXHU",
-    ],
-  },
-  {
-    id: "2",
-    name: "Acme Corp Team",
-    icon: "building-2",
-    colorClass:
-      "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-    updated: "5m ago",
-    role: "Editor",
-    plan: "Pro Plan",
-    activeProjects: 12,
-    members: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC5Cf5Js3_pY71AWSmONtfobuvqamF-__gKpRtw9uT-BXYljvacMWMis4UYKrQsPiJT3QbMqgJIbkOpkWo-RwNjy2LgoJjQbVzzLAK8QTBn7vmEtMvhGyrGMNikha2j3CCGG_dHYp1HyNcBl2vHqYVj6YK0auXR4Ouhq2_zf0FCQXInTuPNYGh8alyfBgG6Bd0Qc1ChOnxxC5eHPsbyA7symp3ddeFBAQKVMRe_kUP8GcA-oadm9_ZxQbqE8-8IKup3sIdd4QB_5oo",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCHy6l2aL1PWrTth9pLETW0gqmAZVAM6ws7FDYwXRIWkFJmfK-1qowFmf8VMypi51L-v6qP6Nrfix5eEEqWNf8CB_t0iCWNggJWcIVbj5RpxubUCzL2SKMhOnoUHXKlqNM6VENdWnTj8KxDkuEAk0-QagcUmWO5kEyR57vOXFsCJNjMlTovHQ2E3tvGXWBKpn0FI1x8zUB5Qsx9l9uSWJZRufetlW7mLLoaxUEZb2DuJrOO_rK6xtAqlqB9ku4FhRwjNaobW7zZDRU",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCoRGyNZtcmMujfIX2VQ-MEjXjYHza6G0NThCJ3dD0yrWnVP-pQPG8VlrorMcRGlyoglQXvIVetC5uZJpCBQ5_Rw_GCykhcXFnBw37q29l0yzG4sVxvb27MQpSlmXN2BR2eIVNi82PCXfzd1x-pO05oCRz5-OObfeOgdtrhjBeFy9fodr6bCJ5CgYusOJAU8s5meY7pZCLDucCJzarLulql0PlmsNsK_bNyp246JCUibX_wkigks5QLaPxzamOAWv-o2qe_1JULnfs",
-    ],
-  },
-  {
-    id: "3",
-    name: "SaaS Startup",
-    icon: "rocket",
-    colorClass:
-      "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
-    updated: "1d ago",
-    role: "Owner",
-    plan: "Pro Plan",
-    activeProjects: 1,
-    members: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDHoeMhmCgQDg4fahkYaPxe1cI57t0VYSCJI_0wT_S60I29wIMy5px_D3g_WnJSIZMx7Q4vNCYndtuNgZz0HOjJT5fwR4SDXojX8Ib_RbcycDQUTsAwy-cf3u_b1sDdHsHBgsxZFFF5ormSuzk-r9VNbOmPvbP_zXJFsKmUqo1E4cSfts9andXZcxyl2Pmm9Qr17OrGrSHZmRizCtiLcH9N8WifHZF2FsJjv2pyDX1nnA3h2GKHFS5kJeCnLRoINY5qcWMQHzXslhc",
-    ],
-  },
-  {
-    id: "4",
-    name: "Marketing Pages",
-    icon: "megaphone",
-    colorClass:
-      "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
-    updated: "1w ago",
-    role: "Editor",
-    plan: "Free Plan",
-    activeProjects: 5,
-    members: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDsB6WSPIOdY5YaCCxbzDrNv4tG-a9pU_r3iIBIapV13uF6BWbAoC4Mzx9ywsMYcqZ7CFjor-k-z5vIVWkCaxVtBBTcvW3elKf1SyFA6Ir76dzlnhnTDRN8O1a0gCtYPyHcMNqHw1e8-fxJqvb-Gc0CY21niFca1sD6Y07dE6CpvYAQqKKBUGXn8PAxEt0VA8Z0WgpuV7TEjX4R6TZbAuFJlrk2cpccjrD18gG4azfF_q85rI4qGvwYzNLkhdmPigoWHqyWvL4WhaA",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCJ-DA9uMvO30MliGQK66gwtmCdYQo20euP_ViD7b_HNNRn_92gMhQPqMWoZo7kaGxQt31NviDke_RJZzFo4ZEUAEhE3SqGCbguNq4k276RagfjUvX-nrSTDZqzvBP5SiVFCgKK1qi73hStbPooRlMVGnpkE_9zi-mFOz6hHbFyl4_MHDuEbb1ZVI07d8t6VFOdFHslJ_uC5QVDvzg1dRdLG8H7Fusj_C5Wli3rln0EqOZIbkH_uiCuhbeTzf571Mbr27Jy7iqtj74",
-    ],
-  },
-];
+  const fetchWorkspaces = async () => {
+    try {
+      setLoading(true);
+      const fetchedWorkspaces = await workspaceApi.getWorkspaces();
+      setWorkspaces(fetchedWorkspaces);
+    } catch (err) {
+      setError("Failed to load workspaces.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
-  const renderIcon = (iconName: string) => {
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchWorkspaces();
+    } else if (status === "unauthenticated") {
+      router.push("/login");
+    } else if (status === "loading") {
+      setLoading(true);
+    }
+  }, [status, router]);
+
+  const handleCreateSuccess = () => {
+    fetchWorkspaces(); // Refresh the list after successful creation
+  };
+
+  const renderIcon = (iconName: string | undefined) => {
     switch (iconName) {
       case "user":
         return <User size={20} />;
@@ -99,6 +71,22 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-center items-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-center items-center text-red-500">
+        <p>{error}</p>
+      </main>
+    );
+  }
+
   return (
     <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -110,7 +98,10 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
             Manage your development environments and projects.
           </p>
         </div>
-        <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90">
+        <button
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90"
+        >
           <Plus size={20} />
           Create Workspace
         </button>
@@ -151,16 +142,19 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${ws.colorClass}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                      ws.colorClass ||
+                      "bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400"
+                    }`}
                   >
-                    {renderIcon(ws.icon)}
+                    {renderIcon(ws.icon || "layout-dashboard")}
                   </div>
                   <div>
                     <h3 className="font-semibold leading-none tracking-tight text-slate-900 dark:text-white">
                       {ws.name}
                     </h3>
                     <p className="mt-1 text-xs text-slate-500 dark:text-text-secondary">
-                      Updated {ws.updated}
+                      Updated {new Date(ws.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -171,21 +165,19 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
               <div className="mt-4 flex flex-wrap gap-2">
                 <span
                   className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-                    ws.role === "Owner"
+                    ws.members.find((m) => m.user === session?.user.id)
+                      ?.role === "OWNER"
                       ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/30"
                       : "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/30"
                   }`}
                 >
-                  {ws.role}
+                  {ws.members.find((m) => m.user === session?.user.id)?.role ||
+                    "VIEWER"}
                 </span>
                 <span
-                  className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-                    ws.plan === "Pro Plan"
-                      ? "bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-400/10 dark:text-purple-400 dark:ring-purple-400/30"
-                      : "bg-slate-50 text-slate-600 ring-slate-500/10 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700"
-                  }`}
+                  className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-slate-50 text-slate-600 ring-slate-500/10 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700`}
                 >
-                  {ws.plan}
+                  Free Plan
                 </span>
               </div>
             </div>
@@ -193,18 +185,18 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
               <div className="flex items-center justify-between py-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex flex-col">
                   <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {ws.activeProjects}
+                    0
                   </span>
                   <span className="text-xs font-medium text-slate-500 dark:text-text-secondary uppercase tracking-wider">
                     Active Projects
                   </span>
                 </div>
                 <div className="flex -space-x-2 overflow-hidden pl-2">
-                  {ws.members.slice(0, 3).map((avatar, idx) => (
+                  {ws.members.slice(0, 3).map((member, idx) => (
                     <div
                       key={idx}
                       className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-card-dark bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                      style={{ backgroundImage: `url("${avatar}")` }}
+                      // style={{ backgroundImage: `url("${avatar}")` }} // Need actual avatar URLs
                     ></div>
                   ))}
                   {ws.members.length > 3 && (
@@ -219,7 +211,7 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
             </div>
             <div className="bg-slate-50 dark:bg-slate-900/50 px-5 py-3 border-t border-slate-100 dark:border-slate-800 group-hover:bg-primary/5 dark:group-hover:bg-primary/10 transition-colors">
               <button
-                onClick={onEnterWorkspace}
+                onClick={() => router.push(`/workspace/${ws.id}/projects`)}
                 className="flex w-full items-center justify-end gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Enter Workspace
@@ -230,7 +222,10 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
         ))}
 
         {/* New Workspace Button */}
-        <button className="group relative flex flex-col items-center justify-center min-h-70 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/20 dark:hover:bg-slate-800/50 dark:hover:border-slate-700 transition-all">
+        <button
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="group relative flex flex-col items-center justify-center min-h-70 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/20 dark:hover:bg-slate-800/50 dark:hover:border-slate-700 transition-all"
+        >
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors dark:bg-slate-800 dark:text-slate-500">
             <Plus size={32} />
           </div>
@@ -242,6 +237,12 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onEnterWorkspace }) => {
           </p>
         </button>
       </div>
+
+      <CreateWorkspaceDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </main>
   );
 };

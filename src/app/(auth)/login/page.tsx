@@ -105,15 +105,17 @@ const Login: React.FC = () => {
               >
                 Email address
               </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                required
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4554] bg-[#1c2027] focus:border-primary h-12 placeholder:text-[#64748b] px-4 text-base font-normal leading-normal transition-all duration-200"
-              />
+              <div className="relative flex w-full flex-1 items-stretch rounded-lg">
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  required
+                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4554] bg-[#1c2027] focus:border-primary h-12 placeholder:text-[#64748b] px-4 text-base font-normal leading-normal transition-all duration-200"
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">

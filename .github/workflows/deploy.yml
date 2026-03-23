@@ -15,6 +15,8 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # Required by next-auth during build to prevent ERR_INVALID_URL since VERCEL_URL is not injected here
+      NEXTAUTH_URL: "https://vn-builder-v1.vercel.app"
 
     steps:
       - name: Checkout code

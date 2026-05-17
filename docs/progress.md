@@ -22,10 +22,12 @@
 - [x] Property Panel (Advanced CSS controls).
 - [x] Schema Auto-save.
 
-### Phase 3 – Code Generation (To Do)
+### Phase 3 – Code Generation (MVP Complete)
 
-- [ ] React/Next.js code generation from Schema.
-- [ ] Export source code as ZIP.
+- [x] React/Next.js code generation from Schema.
+- [x] Preview generated source files.
+- [x] Export source code as ZIP.
+- [ ] GitHub/Vercel automated deployment.
 
 ### Phase 4 – Collaboration & Advanced Features (To Do)
 
@@ -35,20 +37,20 @@
 
 ## Technical Status
 
-- **Source Code**: Feature-based architecture. Core Builder logic (Canvas, NodeRenderer, Store) is operational. Component Registry and Advanced Property Panel are completed.
+- **Source Code**: Feature-based architecture. Core Builder logic (Canvas, NodeRenderer, Store) is operational. Component Registry, Advanced Property Panel, and Code Generation MVP are completed.
 - **Data**: Mongoose configured, supporting JSON Schema storage. Auto-save/Manual-save features implemented.
 - **UI**: Integrated shadcn/ui and Tailwind CSS 4. Modern Dark Mode Builder interface.
 
 ## Current Issues
 
 - Optimize rendering performance for large component trees.
-- Research Code Generation mechanism from JSON Schema.
+- Improve generated code fidelity for advanced layout/style props.
 
 ## Next Steps
 
 - Finalize missing components in Registry (Section, Header, Footer).
 - Create basic templates for quick start.
-- Design Export Code module (Phase 3).
+- Design automated deploy flow after Code Generation MVP stabilizes.
 
 ---
 
@@ -76,10 +78,12 @@
 - [x] Bảng điều khiển thuộc tính (Property Panel nâng cao).
 - [x] Tự động lưu Schema.
 
-### Phase 3 – Code generation (Chưa bắt đầu)
+### Phase 3 – Code generation (MVP hoàn thành)
 
-- [ ] Sinh mã nguồn React/Next.js từ Schema.
-- [ ] Tải về mã nguồn dưới dạng file ZIP.
+- [x] Sinh mã nguồn React/Next.js từ Schema.
+- [x] Xem trước mã nguồn được sinh.
+- [x] Tải về mã nguồn dưới dạng file ZIP.
+- [ ] Tích hợp deploy tự động qua GitHub/Vercel.
 
 ### Phase 4 – Collaboration & Nâng cao (Chưa bắt đầu)
 
@@ -89,17 +93,17 @@
 
 ## Trạng thái kỹ thuật hiện tại
 
-- **Mã nguồn**: Cấu trúc feature-based. Logic core Builder (Canvas, NodeRenderer, Store) đã hoạt động. Đã hoàn thiện Component Registry và Bảng thuộc tính nâng cao.
+- **Mã nguồn**: Cấu trúc feature-based. Logic core Builder (Canvas, NodeRenderer, Store) đã hoạt động. Đã hoàn thiện Component Registry, Bảng thuộc tính nâng cao và Code Generation MVP.
 - **Dữ liệu**: Đã cấu hình Mongoose, hỗ trợ lưu trữ JSON Schema. Đã có tính năng Auto-save/Manual-save.
 - **UI**: Đã tích hợp shadcn/ui và Tailwind CSS 4. Giao diện Builder phong cách Dark Mode hiện đại.
 
 ## Các vấn đề cần giải quyết
 
 - Tối ưu hóa hiệu năng render cây component lớn.
-- Bắt đầu nghiên cứu cơ chế sinh mã (Code Generation) từ JSON Schema.
+- Cải thiện độ trung thực của code sinh ra với layout/style nâng cao.
 
 ## Kế hoạch tiếp theo
 
 - Hoàn thiện các component còn thiếu trong Registry (Section, Header, Footer).
 - Tạo mẫu (Template) cơ bản để người dùng bắt đầu nhanh.
-- Thiết kế module Export Code (Phase 3).
+- Thiết kế luồng deploy tự động sau khi Code Generation MVP ổn định.

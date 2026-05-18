@@ -12,3 +12,10 @@ export interface BuilderNode {
 }
 
 export type BuilderSchema = Record<string, BuilderNode>;
+
+export interface VersionedBuilderSchema {
+    version: 1;
+    nodes: BuilderSchema;
+}
+
+export type BuilderSchemaInput = BuilderSchema | VersionedBuilderSchema;

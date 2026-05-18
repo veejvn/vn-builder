@@ -72,7 +72,7 @@ const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Edit Project</DialogTitle>
           <DialogDescription>
-            Make changes to your project here. Click save when you're done.
+            Make changes to your project here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

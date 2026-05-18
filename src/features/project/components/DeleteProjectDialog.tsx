@@ -9,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { projectApi } from "../project.api";
 
@@ -51,7 +50,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete your
-            project <span className="font-bold">"{projectName}"</span> and
+            project <span className="font-bold">&quot;{projectName}&quot;</span> and
             remove its data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>

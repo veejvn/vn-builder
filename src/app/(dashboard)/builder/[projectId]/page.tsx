@@ -8,18 +8,13 @@ import {
   Smartphone,
   Eye,
   Code,
-  Square,
-  Type,
-  AlignLeft,
-  MousePointer2,
-  Image as ImageIcon,
   Undo2,
   Redo2,
 } from "lucide-react";
 import { Canvas } from "@/features/builder/components/Canvas";
-import { LayoutTree } from "@/features/builder/components/LayoutTree";
 import { PropertyPanel } from "@/features/builder/components/PropertyPanel";
 import { LeftSidebar } from "@/features/builder/components/LeftSidebar";
+import { ExportCodeDialog } from "@/features/builder/components/ExportCodeDialog";
 import { useBuilderStore } from "@/features/builder/store/builder.store";
 import { useManualSave } from "@/features/builder/hooks/useAutoSave";
 import { useParams, useRouter } from "next/navigation";
@@ -31,6 +26,7 @@ const Builder = () => {
   const router = useRouter();
   const { projectId } = useParams() as { projectId: string };
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const { data: project, isLoading, isError } = useProject(projectId);
 
@@ -39,19 +35,20 @@ const Builder = () => {
   const loadSchemaFromIndexedDB = useBuilderStore((state) => state.loadSchemaFromIndexedDB);
   const { status, save, isDirty, setInitialState } = useManualSave(projectId);
 
-  const loadingStarted = React.useRef(false);
+  const loadingStarted = React.useRef<string | null>(null);
 
-  // Reset loading state when projectId changes
+  // Reset state properly when projectId changes
   useEffect(() => {
     setIsLoaded(false);
-    loadingStarted.current = false;
+    loadingStarted.current = null;
     initializeSchema();
-  }, [projectId, initializeSchema]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   // Load project data
   useEffect(() => {
-    if (project && !isLoaded && !loadingStarted.current) {
-      loadingStarted.current = true;
+    if (project && !isLoaded && loadingStarted.current !== projectId) {
+      loadingStarted.current = projectId;
       const loadData = async () => {
         // Try resolving from IndexedDB first to recover unsaved changes
         const loadedFromIDB = await loadSchemaFromIndexedDB(projectId);
@@ -77,20 +74,7 @@ const Builder = () => {
     }
   }, [project, isLoaded, setSchema, setInitialState, loadSchemaFromIndexedDB, projectId]);
 
-  const renderComponentIcon = (iconName: string) => {
-    switch (iconName) {
-      case "title":
-        return <Type size={18} />;
-      case "notes":
-        return <AlignLeft size={18} />;
-      case "smart_button":
-        return <MousePointer2 size={18} />;
-      case "image":
-        return <ImageIcon size={18} />;
-      default:
-        return <Square size={18} />;
-    }
-  };
+
 
   const handleBack = () => {
     if (project?.workspaceId) {
@@ -100,13 +84,13 @@ const Builder = () => {
     }
   };
 
+  if (isError) {
+    return <div className="h-screen flex items-center justify-center bg-[#111418] text-red-500">Failed to load project</div>;
+  }
+
   // Prevent auto-save overwriting before load
   if (isLoading || !isLoaded) {
     return <div className="h-screen flex items-center justify-center bg-[#111418] text-white">Loading Builder...</div>;
-  }
-
-  if (isError) {
-    return <div className="h-screen flex items-center justify-center bg-[#111418] text-red-500">Failed to load project</div>;
   }
 
   return (
@@ -179,7 +163,10 @@ const Builder = () => {
                 <Eye size={16} className="mr-1.5" />
                 Preview
               </button>
-              <button className="flex items-center justify-center rounded-lg h-8 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-bold tracking-wide transition-colors">
+              <button
+                onClick={() => setIsExportDialogOpen(true)}
+                className="flex items-center justify-center rounded-lg h-8 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-bold tracking-wide transition-colors"
+              >
                 <Code size={16} className="mr-1.5" />
                 Export Code
               </button>
@@ -226,6 +213,12 @@ const Builder = () => {
           </aside>
         </main>
       </div>
+      <ExportCodeDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        projectId={projectId}
+        projectName={project?.name}
+      />
     </>
   );
 };

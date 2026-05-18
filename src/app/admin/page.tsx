@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Users, Briefcase, FileCode, Activity, Loader2 } from "lucide-react";
-import { DashboardStats } from "@/features/admin/admin.types";
 import { useAdminStats } from "@/features/admin/hooks/useAdminData";
 
 export default function AdminDashboardPage() {
@@ -54,7 +53,7 @@ export default function AdminDashboardPage() {
           Dashboard Overview
         </h2>
         <p className="text-[#9da8b9] mt-1 text-base">
-          Welcome back! Here's what's happening with your platform today.
+          Welcome back! Here&apos;s what&apos;s happening with your platform today.
         </p>
       </div>
 
@@ -87,7 +86,7 @@ export default function AdminDashboardPage() {
               <p className="text-[#64748b] text-xs mt-4">{stat.description}</p>
 
               {/* Decorative gradient background */}
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-linear-to-br from-white/5 to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
             </div>
           ))}
         </div>

@@ -1,4 +1,4 @@
-
+/* eslint-disable react-hooks/static-components */
 import React from 'react';
 import { useBuilderStore } from '../store/builder.store';
 import { getComponent } from '../registry';

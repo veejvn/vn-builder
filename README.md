@@ -145,6 +145,31 @@ const registry = {
 * Export code (ZIP)
 * Người dùng tự deploy
 
+### Code Generation MVP
+
+VNBuilder hiện có luồng xuất code cơ bản:
+
+```
+Builder Schema
+ → Generate Next.js App Router files
+ → Preview generated source files
+ → Download ZIP
+```
+
+Project export bao gồm cấu trúc Next.js tối thiểu:
+
+```
+app/page.tsx
+app/layout.tsx
+app/globals.css
+package.json
+next.config.ts
+tsconfig.json
+README.md
+```
+
+MVP này sinh project tĩnh, nhẹ dependency, không mang theo auth, database, shadcn/ui, Zustand, dnd-kit hay runtime builder. Các style visual được xuất bằng inline style cho những prop được hỗ trợ; `className` hiện có vẫn được giữ lại để dễ đọc và mở rộng sau.
+
 ### Giai đoạn sau
 
 ```

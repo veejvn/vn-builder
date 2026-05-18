@@ -14,6 +14,7 @@ import {
 import { Canvas } from "@/features/builder/components/Canvas";
 import { PropertyPanel } from "@/features/builder/components/PropertyPanel";
 import { LeftSidebar } from "@/features/builder/components/LeftSidebar";
+import { ExportCodeDialog } from "@/features/builder/components/ExportCodeDialog";
 import { useBuilderStore } from "@/features/builder/store/builder.store";
 import { useManualSave } from "@/features/builder/hooks/useAutoSave";
 import { useParams, useRouter } from "next/navigation";
@@ -25,6 +26,7 @@ const Builder = () => {
   const router = useRouter();
   const { projectId } = useParams() as { projectId: string };
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const { data: project, isLoading, isError } = useProject(projectId);
 
@@ -82,13 +84,13 @@ const Builder = () => {
     }
   };
 
+  if (isError) {
+    return <div className="h-screen flex items-center justify-center bg-[#111418] text-red-500">Failed to load project</div>;
+  }
+
   // Prevent auto-save overwriting before load
   if (isLoading || !isLoaded) {
     return <div className="h-screen flex items-center justify-center bg-[#111418] text-white">Loading Builder...</div>;
-  }
-
-  if (isError) {
-    return <div className="h-screen flex items-center justify-center bg-[#111418] text-red-500">Failed to load project</div>;
   }
 
   return (
@@ -161,7 +163,10 @@ const Builder = () => {
                 <Eye size={16} className="mr-1.5" />
                 Preview
               </button>
-              <button className="flex items-center justify-center rounded-lg h-8 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-bold tracking-wide transition-colors">
+              <button
+                onClick={() => setIsExportDialogOpen(true)}
+                className="flex items-center justify-center rounded-lg h-8 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-bold tracking-wide transition-colors"
+              >
                 <Code size={16} className="mr-1.5" />
                 Export Code
               </button>
@@ -208,6 +213,12 @@ const Builder = () => {
           </aside>
         </main>
       </div>
+      <ExportCodeDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        projectId={projectId}
+        projectName={project?.name}
+      />
     </>
   );
 };

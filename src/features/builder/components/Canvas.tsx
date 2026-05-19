@@ -15,6 +15,7 @@ import {
 import { useBuilderStore } from '../store/builder.store';
 import { NodeRenderer } from './NodeRenderer';
 import type { MoveTarget, NodeType } from '../schema/node.types';
+import type { BuilderViewport } from '../schema/node.types';
 
 interface BuilderDndContextProps {
     children: React.ReactNode;
@@ -31,6 +32,12 @@ interface CanvasDropData {
     position: MoveTarget['position'];
     index?: number;
 }
+
+const CANVAS_WIDTHS: Record<BuilderViewport, number> = {
+    desktop: 1200,
+    tablet: 768,
+    mobile: 390,
+};
 
 function isPaletteDragData(data: unknown): data is PaletteDragData {
     return Boolean(data && typeof data === 'object' && (data as PaletteDragData).kind === 'palette');
@@ -127,10 +134,16 @@ export const BuilderDndContext = ({ children }: BuilderDndContextProps) => {
 };
 
 export const Canvas = () => {
+    const viewport = useBuilderStore((state) => state.viewport);
+    const width = CANVAS_WIDTHS[viewport];
+
     return (
         <div className="flex flex-col h-full w-full">
-            <div className="flex-1 p-8 bg-gray-100 overflow-auto">
-                <div className="bg-white min-h-[500px] shadow-sm">
+            <div className="flex-1 bg-gray-100 overflow-auto p-4 md:p-8">
+                <div
+                    className="mx-auto min-h-[800px] max-w-full bg-white shadow-sm transition-[width] duration-200 ease-out"
+                    style={{ width }}
+                >
                     <NodeRenderer nodeId="root" />
                 </div>
             </div>

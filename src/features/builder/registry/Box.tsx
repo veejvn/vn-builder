@@ -2,7 +2,7 @@ import React from 'react';
 import { NodeProps } from '../schema/node.types';
 import { cn } from '@/lib/utils';
 
-export const BoxComponent = ({ children, className, style = {}, tag = 'div', ...props }: NodeProps & { children?: React.ReactNode, tag?: React.ElementType }) => {
+export const BoxComponent = ({ children, className, style = {}, tag = 'div', debug, ...props }: NodeProps & { children?: React.ReactNode, tag?: React.ElementType }) => {
     const isFlex = (props.display || (style as any).display || 'flex') === 'flex';
     const Tag = tag;
 
@@ -34,7 +34,7 @@ export const BoxComponent = ({ children, className, style = {}, tag = 'div', ...
                 isFlex ? 'flex' : 'block',
                 // Default width if not specified in style or props
                 (!computedStyle.width && !className?.includes('w-')) && 'w-full',
-                props.debug !== false && 'border border-dashed border-gray-200 p-4',
+                debug !== false && 'border border-dashed border-gray-200 p-4',
                 className
             )}
             style={computedStyle}

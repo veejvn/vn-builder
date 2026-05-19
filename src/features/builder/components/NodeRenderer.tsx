@@ -79,7 +79,7 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
                 !previewMode && !isSelected && "hover:ring-1 hover:ring-blue-300"
             )}
         >
-            <Component {...node.props}>
+            <Component {...node.props} debug={previewMode ? false : node.props.debug}>
                 {renderChildren()}
             </Component>
         </div>

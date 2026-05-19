@@ -1,16 +1,25 @@
 import React from 'react';
 import { Type } from 'lucide-react';
-import { NodeType } from '../../schema/node.types';
+import { NodeProps, NodeType } from '../../schema/node.types';
 
 interface ContentSectionProps {
     nodeType: NodeType;
-    formState: any;
-    handleChange: (key: string, value: any) => void;
-    handleStyleChange: (key: string, value: any) => void;
+    formState: NodeProps;
+    handleChange: (key: string, value: unknown) => void;
 }
 
-export const ContentSection = ({ nodeType, formState, handleChange, handleStyleChange }: ContentSectionProps) => {
+export const ContentSection = ({ nodeType, formState, handleChange }: ContentSectionProps) => {
     if (nodeType !== 'text' && nodeType !== 'button' && nodeType !== 'image' && nodeType !== 'icon' && nodeType !== 'input') return null;
+
+    const handleOptionalNumberChange = (key: string, value: string) => {
+        if (value === '') {
+            handleChange(key, '');
+            return;
+        }
+
+        const parsed = Number(value);
+        handleChange(key, Number.isFinite(parsed) ? parsed : value);
+    };
 
     return (
         <div className="border-b border-[#282f39]">
@@ -88,7 +97,7 @@ export const ContentSection = ({ nodeType, formState, handleChange, handleStyleC
                                 <input
                                     type="number"
                                     value={formState.size ?? ''}
-                                    onChange={(e) => handleChange('size', parseInt(e.target.value) || 0)}
+                                    onChange={(e) => handleOptionalNumberChange('size', e.target.value)}
                                     className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                                 />
                             </div>

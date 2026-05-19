@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useBuilderStore } from '../store/builder.store';
 import { StyleSection } from './properties/StyleSection';
 import { ContentSection } from './properties/ContentSection';
 import { LayoutSection } from './properties/LayoutSection';
+import { NodeProps } from '../schema/node.types';
 
 export const PropertyPanel = () => {
     const activeNodeId = useBuilderStore((state) => state.activeNodeId);
     const schema = useBuilderStore((state) => state.schema);
     const updateNode = useBuilderStore((state) => state.updateNode);
 
-    const [formState, setFormState] = useState<any>({});
+    const [formState, setFormState] = useState<NodeProps>({});
 
     const activeNode = activeNodeId ? schema[activeNodeId] : null;
 
@@ -25,7 +26,7 @@ export const PropertyPanel = () => {
         setFormState(activeNode?.props || {});
     }
 
-    const handleChange = (key: string, value: any) => {
+    const handleChange = (key: string, value: unknown) => {
         if (!activeNodeId) return;
 
         const newProps = { ...formState, [key]: value };
@@ -33,10 +34,10 @@ export const PropertyPanel = () => {
         updateNode(activeNodeId, { [key]: value });
     };
 
-    const handleStyleChange = (key: string, value: any) => {
+    const handleStyleChange = (key: string, value: unknown) => {
         if (!activeNodeId) return;
 
-        const currentStyle = formState.style || {};
+        const currentStyle = typeof formState.style === 'object' && formState.style !== null ? formState.style : {};
         const newStyle = { ...currentStyle, [key]: value };
 
         handleChange('style', newStyle);
@@ -63,7 +64,6 @@ export const PropertyPanel = () => {
                 nodeType={activeNode.type}
                 formState={formState}
                 handleChange={handleChange}
-                handleStyleChange={handleStyleChange}
             />
 
             <LayoutSection

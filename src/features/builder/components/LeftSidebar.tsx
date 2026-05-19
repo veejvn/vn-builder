@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LayoutTree } from './LayoutTree';
-import { Search, Type, MousePointer2, LayoutTemplate, Box, FileImage, Layers, Plus, ALargeSmall, Star, SquareDashed, Heading, Footprints, type LucideIcon } from 'lucide-react';
+import { Type, MousePointer2, LayoutTemplate, Box, FileImage, Layers, Plus, ALargeSmall, Star, SquareDashed, Heading, Footprints, type LucideIcon } from 'lucide-react';
 import { useBuilderStore } from '../store/builder.store';
 import { NODE_METADATA, type NodeCategory } from '../schema/node.metadata';
 import { canAcceptChild } from '../schema/schema.utils';
@@ -135,26 +135,6 @@ export const LeftSidebar = () => {
                     Assets
                 </button>
             </div>
-
-            {/* Search - Only show for Layers or Add maybe? For now keep it common or move it inside tabs if needed. 
-                Original design had search always visible. Let's keep it if activeTab is layers or assets, 
-                or maybe just for components. Let's keep it simple for now and only show in Layers as in original design it was above LayoutTree.
-            */}
-            {activeTab === 'layers' && (
-                <div className="p-3 border-b border-border-dark">
-                    <div className="relative">
-                        <Search
-                            size={18}
-                            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9da8b9]"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Search layers..."
-                            className="w-full bg-[#1c2128] border border-[#282f39] text-white text-xs rounded h-8 pl-8 pr-3 focus:outline-none focus:border-primary placeholder-[#5c6b7f]"
-                        />
-                    </div>
-                </div>
-            )}
 
             {/* Content area */}
             <div className="flex-1 overflow-y-auto">

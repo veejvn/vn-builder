@@ -15,6 +15,7 @@ interface NodeRendererProps {
 export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
     const node = useBuilderStore((state) => state.schema[nodeId]);
     const activeNodeId = useBuilderStore((state) => state.activeNodeId);
+    const previewMode = useBuilderStore((state) => state.previewMode);
     const selectNode = useBuilderStore((state) => state.selectNode);
 
     if (!node) return null;
@@ -26,6 +27,7 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
     // Handler for selection (stop propagation to prevent selecting parent)
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (previewMode) return;
         selectNode(nodeId);
     };
 
@@ -35,17 +37,33 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
 
         return (
             <>
-                {acceptsChildren && (
+                {acceptsChildren && !previewMode && !hasChildren && (
                     <CanvasDropZone
                         parentId={nodeId}
-                        isEmpty={!hasChildren}
+                        isEmpty
                     />
                 )}
                 {hasChildren && (
                     <SortableContext items={node.children} strategy={verticalListSortingStrategy}>
-                        {node.children.map((childId) => (
-                            <NodeRenderer key={childId} nodeId={childId} />
+                        {node.children.map((childId, index) => (
+                            <React.Fragment key={childId}>
+                                {acceptsChildren && !previewMode && (
+                                    <CanvasDropZone
+                                        parentId={nodeId}
+                                        position="before"
+                                        index={index}
+                                    />
+                                )}
+                                <NodeRenderer nodeId={childId} />
+                            </React.Fragment>
                         ))}
+                        {acceptsChildren && !previewMode && (
+                            <CanvasDropZone
+                                parentId={nodeId}
+                                position="after"
+                                index={node.children.length - 1}
+                            />
+                        )}
                     </SortableContext>
                 )}
             </>
@@ -57,8 +75,8 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
             onClick={handleClick}
             className={cn(
                 "relative group",
-                isSelected && "ring-2 ring-blue-500 z-10",
-                !isSelected && "hover:ring-1 hover:ring-blue-300"
+                !previewMode && isSelected && "ring-2 ring-blue-500 z-10",
+                !previewMode && !isSelected && "hover:ring-1 hover:ring-blue-300"
             )}
         >
             <Component {...node.props}>
@@ -74,7 +92,7 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
     }
 
     return (
-        <SortableNode id={nodeId}>
+        <SortableNode id={nodeId} disabled={previewMode}>
             {content}
         </SortableNode>
     );

@@ -43,6 +43,7 @@ function isCanvasDropData(data: unknown): data is CanvasDropData {
 export const BuilderDndContext = ({ children }: BuilderDndContextProps) => {
     const addNode = useBuilderStore((state) => state.addNode);
     const moveNode = useBuilderStore((state) => state.moveNode);
+    const schema = useBuilderStore((state) => state.schema);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -61,7 +62,8 @@ export const BuilderDndContext = ({ children }: BuilderDndContextProps) => {
 
         if (isPaletteDragData(activeData)) {
             if (isCanvasDropData(overData)) {
-                addNode(overData.parentId, activeData.type, undefined, overData.index);
+                const insertIndex = getDropInsertIndex(overData);
+                addNode(overData.parentId, activeData.type, undefined, insertIndex);
                 return;
             }
 
@@ -70,14 +72,47 @@ export const BuilderDndContext = ({ children }: BuilderDndContextProps) => {
         }
 
         if (isCanvasDropData(overData)) {
-            moveNode(String(active.id), {
-                overId: overData.parentId,
-                position: overData.position,
-            });
+            const target = getMoveTarget(overData);
+            if (target) {
+                moveNode(String(active.id), target);
+            }
             return;
         }
 
         moveNode(String(active.id), String(over.id));
+    }
+
+    function getDropInsertIndex(overData: CanvasDropData) {
+        if (overData.position === 'before') return overData.index;
+        if (overData.position === 'after' && typeof overData.index === 'number') {
+            return overData.index + 1;
+        }
+        return undefined;
+    }
+
+    function getMoveTarget(overData: CanvasDropData): MoveTarget | null {
+        if (overData.position === 'inside') {
+            return {
+                overId: overData.parentId,
+                position: 'inside',
+            };
+        }
+
+        const parent = schema[overData.parentId];
+        if (!parent || typeof overData.index !== 'number') return null;
+
+        const overId = parent.children[overData.index];
+        if (!overId) {
+            return {
+                overId: overData.parentId,
+                position: 'inside',
+            };
+        }
+
+        return {
+            overId,
+            position: overData.position,
+        };
     }
 
     return (

@@ -5,7 +5,8 @@ import { getComponent } from '../registry';
 import { SortableNode } from './SortableNode';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { cn } from '@/lib/utils';
-import { BuilderNode } from '../schema/node.types';
+import { canHaveChildren } from '../schema/schema.utils';
+import { CanvasDropZone } from './CanvasDropZone';
 
 interface NodeRendererProps {
     nodeId: string;
@@ -20,6 +21,7 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
 
     const Component = getComponent(node.type);
     const isSelected = activeNodeId === nodeId;
+    const acceptsChildren = canHaveChildren(node.type);
 
     // Handler for selection (stop propagation to prevent selecting parent)
     const handleClick = (e: React.MouseEvent) => {
@@ -29,14 +31,24 @@ export const NodeRenderer = ({ nodeId }: NodeRendererProps) => {
 
     // Render children
     const renderChildren = () => {
-        if (!node.children || node.children.length === 0) return null;
+        const hasChildren = node.children && node.children.length > 0;
 
         return (
-            <SortableContext items={node.children} strategy={verticalListSortingStrategy}>
-                {node.children.map((childId) => (
-                    <NodeRenderer key={childId} nodeId={childId} />
-                ))}
-            </SortableContext>
+            <>
+                {acceptsChildren && (
+                    <CanvasDropZone
+                        parentId={nodeId}
+                        isEmpty={!hasChildren}
+                    />
+                )}
+                {hasChildren && (
+                    <SortableContext items={node.children} strategy={verticalListSortingStrategy}>
+                        {node.children.map((childId) => (
+                            <NodeRenderer key={childId} nodeId={childId} />
+                        ))}
+                    </SortableContext>
+                )}
+            </>
         );
     };
 

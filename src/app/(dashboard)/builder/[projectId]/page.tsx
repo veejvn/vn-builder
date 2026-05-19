@@ -11,7 +11,7 @@ import {
   Undo2,
   Redo2,
 } from "lucide-react";
-import { Canvas } from "@/features/builder/components/Canvas";
+import { BuilderDndContext, Canvas } from "@/features/builder/components/Canvas";
 import { PropertyPanel } from "@/features/builder/components/PropertyPanel";
 import { LeftSidebar } from "@/features/builder/components/LeftSidebar";
 import { ExportCodeDialog } from "@/features/builder/components/ExportCodeDialog";
@@ -175,6 +175,7 @@ const Builder = () => {
         </header>
 
         {/* Main Workspace */}
+        <BuilderDndContext>
         <main className="flex flex-1 overflow-hidden">
           {/* Left Sidebar: Components */}
           <LeftSidebar />
@@ -212,6 +213,7 @@ const Builder = () => {
             <PropertyPanel />
           </aside>
         </main>
+        </BuilderDndContext>
       </div>
       <ExportCodeDialog
         open={isExportDialogOpen}

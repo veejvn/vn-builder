@@ -11,16 +11,34 @@ import {
   Undo2,
   Redo2,
 } from "lucide-react";
-import { Canvas } from "@/features/builder/components/Canvas";
+import { BuilderDndContext, Canvas } from "@/features/builder/components/Canvas";
 import { PropertyPanel } from "@/features/builder/components/PropertyPanel";
 import { LeftSidebar } from "@/features/builder/components/LeftSidebar";
 import { ExportCodeDialog } from "@/features/builder/components/ExportCodeDialog";
 import { useBuilderStore } from "@/features/builder/store/builder.store";
+import type { BuilderViewport } from "@/features/builder/schema/node.types";
 import { useManualSave } from "@/features/builder/hooks/useAutoSave";
 import { useParams, useRouter } from "next/navigation";
 import { useProject } from "@/features/project/hooks/useProjects";
 import { DEFAULT_SCHEMA } from "@/features/builder/store/builder.store";
 import Script from "next/script";
+import { cn } from "@/lib/utils";
+
+const VIEWPORT_LABELS: Record<BuilderViewport, string> = {
+  desktop: "1200 x 800px",
+  tablet: "768 x 800px",
+  mobile: "390 x 800px",
+};
+
+const VIEWPORTS: Array<{
+  value: BuilderViewport;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+}> = [
+  { value: "desktop", label: "Desktop", icon: Monitor },
+  { value: "tablet", label: "Tablet", icon: Tablet },
+  { value: "mobile", label: "Mobile", icon: Smartphone },
+];
 
 const Builder = () => {
   const router = useRouter();
@@ -33,6 +51,14 @@ const Builder = () => {
   const setSchema = useBuilderStore((state) => state.setSchema);
   const initializeSchema = useBuilderStore((state) => state.initializeSchema);
   const loadSchemaFromIndexedDB = useBuilderStore((state) => state.loadSchemaFromIndexedDB);
+  const undo = useBuilderStore((state) => state.undo);
+  const redo = useBuilderStore((state) => state.redo);
+  const canUndo = useBuilderStore((state) => state.history.past.length > 0);
+  const canRedo = useBuilderStore((state) => state.history.future.length > 0);
+  const previewMode = useBuilderStore((state) => state.previewMode);
+  const setPreviewMode = useBuilderStore((state) => state.setPreviewMode);
+  const viewport = useBuilderStore((state) => state.viewport);
+  const setViewport = useBuilderStore((state) => state.setViewport);
   const { status, save, isDirty, setInitialState } = useManualSave(projectId);
 
   const loadingStarted = React.useRef<string | null>(null);
@@ -120,15 +146,24 @@ const Builder = () => {
 
           {/* Center: Device Toggles */}
           <div className="hidden md:flex items-center bg-[#1c2128] rounded-lg p-1 gap-1">
-            <button className="p-1.5 rounded bg-[#282f39] text-white hover:bg-[#323b47] transition-colors">
-              <Monitor size={18} />
-            </button>
-            <button className="p-1.5 rounded text-[#9da8b9] hover:text-white hover:bg-[#282f39] transition-colors">
-              <Tablet size={18} />
-            </button>
-            <button className="p-1.5 rounded text-[#9da8b9] hover:text-white hover:bg-[#282f39] transition-colors">
-              <Smartphone size={18} />
-            </button>
+            {VIEWPORTS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                title={label}
+                aria-label={`Set ${label} viewport`}
+                aria-pressed={viewport === value}
+                onClick={() => setViewport(value)}
+                className={cn(
+                  "p-1.5 rounded transition-colors",
+                  viewport === value
+                    ? "bg-[#282f39] text-white"
+                    : "text-[#9da8b9] hover:text-white hover:bg-[#282f39]"
+                )}
+              >
+                <Icon size={18} />
+              </button>
+            ))}
           </div>
 
           {/* Right: Actions */}
@@ -159,9 +194,19 @@ const Builder = () => {
               >
                 {status === 'saving' ? 'Saving...' : 'Save'}
               </button>
-              <button className="flex items-center justify-center rounded-lg h-8 px-3 bg-[#282f39] hover:bg-[#323b47] text-white text-xs font-bold tracking-wide transition-colors">
+              <button
+                type="button"
+                onClick={() => setPreviewMode(!previewMode)}
+                aria-pressed={previewMode}
+                className={cn(
+                  "flex items-center justify-center rounded-lg h-8 px-3 text-xs font-bold tracking-wide transition-colors",
+                  previewMode
+                    ? "bg-white text-[#111418] hover:bg-gray-200"
+                    : "bg-[#282f39] hover:bg-[#323b47] text-white"
+                )}
+              >
                 <Eye size={16} className="mr-1.5" />
-                Preview
+                {previewMode ? "Editing" : "Preview"}
               </button>
               <button
                 onClick={() => setIsExportDialogOpen(true)}
@@ -175,6 +220,7 @@ const Builder = () => {
         </header>
 
         {/* Main Workspace */}
+        <BuilderDndContext>
         <main className="flex flex-1 overflow-hidden">
           {/* Left Sidebar: Components */}
           <LeftSidebar />
@@ -184,20 +230,42 @@ const Builder = () => {
             {/* Canvas Toolbar */}
             <div className="h-8 bg-[#111418] border-b border-border-dark flex items-center justify-between px-4">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-[#5c6b7f]">1200 x 800px</span>
+                <span className="text-[10px] text-[#5c6b7f]">{VIEWPORT_LABELS[viewport]}</span>
                 <span className="text-[10px] text-[#5c6b7f] px-1 bg-[#282f39] rounded">
                   100%
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#5c6b7f]">
-                <Undo2
-                  size={16}
-                  className="cursor-pointer hover:text-white transition-colors"
-                />
-                <Redo2
-                  size={16}
-                  className="cursor-pointer hover:text-white transition-colors"
-                />
+              <div className="flex items-center gap-1 text-[#5c6b7f]">
+                <button
+                  type="button"
+                  title="Undo"
+                  aria-label="Undo"
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className={cn(
+                    "inline-flex h-6 w-6 items-center justify-center rounded transition-colors",
+                    canUndo
+                      ? "hover:bg-[#282f39] hover:text-white"
+                      : "cursor-not-allowed opacity-40"
+                  )}
+                >
+                  <Undo2 size={16} />
+                </button>
+                <button
+                  type="button"
+                  title="Redo"
+                  aria-label="Redo"
+                  onClick={redo}
+                  disabled={!canRedo}
+                  className={cn(
+                    "inline-flex h-6 w-6 items-center justify-center rounded transition-colors",
+                    canRedo
+                      ? "hover:bg-[#282f39] hover:text-white"
+                      : "cursor-not-allowed opacity-40"
+                  )}
+                >
+                  <Redo2 size={16} />
+                </button>
               </div>
             </div>
 
@@ -212,6 +280,7 @@ const Builder = () => {
             <PropertyPanel />
           </aside>
         </main>
+        </BuilderDndContext>
       </div>
       <ExportCodeDialog
         open={isExportDialogOpen}

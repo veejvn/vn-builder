@@ -1,20 +1,35 @@
-
 import { create } from 'zustand';
-import { BuilderSchema, BuilderNode, NodeType, NodeProps } from '../schema/node.types';
-import { nanoid } from 'nanoid';
+import type { BuilderSchema, BuilderViewport, MoveTarget, NodeProps, NodeType } from '../schema/node.types';
+import {
+    canAcceptChild,
+    collectDescendantIds,
+    createBuilderNode,
+    deleteNodeRecursive,
+    moveNodeInSchema,
+} from '../schema/schema.utils';
+import { EMPTY_HISTORY, popRedo, popUndo, pushHistory, type BuilderHistory } from './builder.history';
 
 interface BuilderState {
     schema: BuilderSchema;
     activeNodeId: string | null;
+    history: BuilderHistory;
+    previewMode: boolean;
+    viewport: BuilderViewport;
 
     // Actions
     initializeSchema: () => void;
     setSchema: (schema: BuilderSchema) => void;
-    addNode: (parentId: string, type: NodeType, props?: NodeProps) => void;
+    addNode: (parentId: string, type: NodeType, props?: NodeProps, index?: number) => string | null;
     updateNode: (id: string, props: NodeProps) => void;
-    moveNode: (activeId: string, overId: string) => void;
-    deleteNode: (id: string) => void;
+    moveNode: (activeId: string, targetOrOverId: MoveTarget | string) => boolean;
+    deleteNode: (id: string) => boolean;
     selectNode: (id: string | null) => void;
+    undo: () => void;
+    redo: () => void;
+    canUndo: () => boolean;
+    canRedo: () => boolean;
+    setPreviewMode: (enabled: boolean) => void;
+    setViewport: (viewport: BuilderViewport) => void;
     loadSchemaFromIndexedDB: (projectId: string) => Promise<boolean>; // Returns true if loaded
 }
 
@@ -33,38 +48,50 @@ export const DEFAULT_SCHEMA: BuilderSchema = {
 export const useBuilderStore = create<BuilderState>((set, get) => ({
     schema: DEFAULT_SCHEMA,
     activeNodeId: null,
+    history: EMPTY_HISTORY,
+    previewMode: false,
+    viewport: 'desktop',
 
     initializeSchema: () => {
-        set({ schema: DEFAULT_SCHEMA });
+        set({
+            schema: DEFAULT_SCHEMA,
+            activeNodeId: null,
+            history: EMPTY_HISTORY,
+        });
     },
 
-    setSchema: (schema) => set({ schema }),
+    setSchema: (schema) => set({
+        schema,
+        activeNodeId: null,
+        history: EMPTY_HISTORY,
+    }),
 
-    addNode: (parentId, type, props = {}) => {
-        const newNodeId = nanoid();
-        const newNode: BuilderNode = {
-            id: newNodeId,
-            type,
-            props,
-            children: [],
-            parentId,
-        };
+    addNode: (parentId, type, props = {}, index) => {
+        const state = get();
+        const parentNode = state.schema[parentId];
+        if (!canAcceptChild(parentNode, type)) return null;
 
-        set((state) => {
-            const parentNode = state.schema[parentId];
-            if (!parentNode) return state;
+        const newNode = createBuilderNode(type, parentId, props);
+        const children = [...parentNode.children];
+        const boundedIndex =
+            typeof index === 'number'
+                ? Math.max(0, Math.min(index, parentNode.children.length))
+                : parentNode.children.length;
+        children.splice(boundedIndex, 0, newNode.id);
 
-            return {
-                schema: {
-                    ...state.schema,
-                    [parentId]: {
-                        ...parentNode,
-                        children: [...parentNode.children, newNodeId],
-                    },
-                    [newNodeId]: newNode,
+        set({
+            schema: {
+                ...state.schema,
+                [parentId]: {
+                    ...parentNode,
+                    children,
                 },
-            };
+                [newNode.id]: newNode,
+            },
+            history: pushHistory(state.history, state.schema),
         });
+
+        return newNode.id;
     },
 
     updateNode: (id, props) => {
@@ -80,75 +107,85 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
                         props: { ...node.props, ...props },
                     },
                 },
+                history: pushHistory(state.history, state.schema),
             };
         });
     },
 
-    moveNode: (activeId, overId) => {
-        set((state) => {
-            if (activeId === overId) return state;
+    moveNode: (activeId, targetOrOverId) => {
+        const state = get();
+        const target: MoveTarget =
+            typeof targetOrOverId === 'string'
+                ? { overId: targetOrOverId, position: 'before' }
+                : targetOrOverId;
 
-            const activeNode = state.schema[activeId];
-            const overNode = state.schema[overId];
+        const nextSchema = moveNodeInSchema(state.schema, activeId, target);
+        if (nextSchema === state.schema) return false;
 
-            if (!activeNode || !overNode) return state;
-
-            const activeParentId = activeNode.parentId;
-            const overParentId = overNode.parentId;
-
-            // Case 1: Reordering within the same parent
-            if (activeParentId && activeParentId === overParentId) {
-                const parentNode = state.schema[activeParentId];
-                const oldIndex = parentNode.children.indexOf(activeId);
-                const newIndex = parentNode.children.indexOf(overId);
-
-                if (oldIndex !== -1 && newIndex !== -1) {
-                    const newChildren = [...parentNode.children];
-                    // Manual array move implementation since we don't want to import another util just for this if not needed, 
-                    // but wait, I can just use splice.
-                    newChildren.splice(oldIndex, 1);
-                    newChildren.splice(newIndex, 0, activeId);
-
-                    return {
-                        schema: {
-                            ...state.schema,
-                            [activeParentId]: {
-                                ...parentNode,
-                                children: newChildren,
-                            },
-                        },
-                    };
-                }
-            }
-
-            return state;
+        set({
+            schema: nextSchema,
+            history: pushHistory(state.history, state.schema),
         });
+
+        return true;
     },
 
     deleteNode: (id) => {
-        set((state) => {
-            const node = state.schema[id];
-            if (!node || !node.parentId) return state; // Can't delete root
+        const state = get();
+        const node = state.schema[id];
+        if (!node || !node.parentId) return false;
 
-            const parentNode = state.schema[node.parentId];
+        const deletedIds = [id, ...collectDescendantIds(state.schema, id)];
+        const nextSchema = deleteNodeRecursive(state.schema, id);
+        if (nextSchema === state.schema) return false;
 
-            const newSchema = { ...state.schema };
-            delete newSchema[id];
-
-            return {
-                schema: {
-                    ...newSchema,
-                    [node.parentId]: {
-                        ...parentNode,
-                        children: parentNode.children.filter((childId) => childId !== id),
-                    },
-                },
-                activeNodeId: state.activeNodeId === id ? null : state.activeNodeId,
-            };
+        set({
+            schema: nextSchema,
+            activeNodeId: state.activeNodeId && deletedIds.includes(state.activeNodeId)
+                ? null
+                : state.activeNodeId,
+            history: pushHistory(state.history, state.schema),
         });
+
+        return true;
     },
 
     selectNode: (id) => set({ activeNodeId: id }),
+
+    undo: () => {
+        const state = get();
+        const result = popUndo(state.history, state.schema);
+        if (!result) return;
+
+        set({
+            schema: result.schema,
+            activeNodeId: state.activeNodeId && result.schema[state.activeNodeId]
+                ? state.activeNodeId
+                : null,
+            history: result.history,
+        });
+    },
+
+    redo: () => {
+        const state = get();
+        const result = popRedo(state.history, state.schema);
+        if (!result) return;
+
+        set({
+            schema: result.schema,
+            activeNodeId: state.activeNodeId && result.schema[state.activeNodeId]
+                ? state.activeNodeId
+                : null,
+            history: result.history,
+        });
+    },
+
+    canUndo: () => get().history.past.length > 0,
+    canRedo: () => get().history.future.length > 0,
+
+    setPreviewMode: (enabled) => set({ previewMode: enabled }),
+    setViewport: (viewport) => set({ viewport }),
+
     loadSchemaFromIndexedDB: async (projectId) => {
         if (typeof window === 'undefined') return false;
 
@@ -157,7 +194,11 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
             const schema = await indexedDBService.loadSchema(projectId);
 
             if (schema && typeof schema === 'object' && schema.root) {
-                set({ schema });
+                set({
+                    schema,
+                    activeNodeId: null,
+                    history: EMPTY_HISTORY,
+                });
                 return true;
             }
         } catch (error) {

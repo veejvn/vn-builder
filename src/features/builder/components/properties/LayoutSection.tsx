@@ -1,18 +1,39 @@
 import React from 'react';
 import { Layout } from 'lucide-react';
-import { NodeType } from '../../schema/node.types';
+import { NodeProps, NodeType } from '../../schema/node.types';
 
 interface LayoutSectionProps {
     nodeType: NodeType;
-    formState: any;
-    handleStyleChange: (key: string, value: any) => void;
+    formState: NodeProps;
+    handleStyleChange: (key: string, value: unknown) => void;
 }
+
+const LENGTH_PATTERN = /^-?\d+(\.\d+)?$/;
+
+const normalizeCssLength = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    return LENGTH_PATTERN.test(trimmed) ? `${trimmed}px` : value;
+};
+
+const getStyle = (formState: NodeProps) => (
+    typeof formState.style === 'object' && formState.style !== null
+        ? formState.style as Record<string, unknown>
+        : {}
+);
+
+const stringValue = (value: unknown, fallback = '') => (
+    typeof value === 'string' || typeof value === 'number' ? String(value) : fallback
+);
 
 export const LayoutSection = ({ nodeType, formState, handleStyleChange }: LayoutSectionProps) => {
     // Only show for containers, pages, flex, or grid
     if (['container', 'flex', 'page', 'grid'].indexOf(nodeType) === -1) return null;
 
     const isGrid = nodeType === 'grid';
+    const style = getStyle(formState);
+    const defaultDisplay = isGrid ? 'grid' : 'flex';
+    const currentDisplay = stringValue(style.display, defaultDisplay);
     // For container and flex, we check the style.display or mapped defaults
     // But for simplicity, we show Flex Controls if it's meant to be flex.
     // However, our new BoxComponent logic is 'display' based. 
@@ -27,6 +48,20 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                 </div>
             </div>
             <div className="p-4 space-y-3">
+                <div className="space-y-1">
+                    <label className="text-[10px] text-[#9da8b9]">Display</label>
+                    <select
+                        value={currentDisplay}
+                        onChange={(e) => handleStyleChange('display', e.target.value)}
+                        className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
+                    >
+                        <option value="flex">Flex</option>
+                        <option value="grid">Grid</option>
+                        <option value="block">Block</option>
+                        <option value="inline-flex">Inline Flex</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
 
                 {isGrid ? (
                     <>
@@ -34,7 +69,7 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                             <label className="text-[10px] text-[#9da8b9]">Columns Template</label>
                             <input
                                 type="text"
-                                value={formState.style?.gridTemplateColumns || 'repeat(2, 1fr)'}
+                                value={stringValue(style.gridTemplateColumns, 'repeat(2, 1fr)')}
                                 onChange={(e) => handleStyleChange('gridTemplateColumns', e.target.value)}
                                 className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                                 placeholder="repeat(2, 1fr)"
@@ -44,8 +79,9 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                             <label className="text-[10px] text-[#9da8b9]">Gap (px)</label>
                             <input
                                 type="text"
-                                value={formState.style?.gap || ''}
+                                value={stringValue(style.gap)}
                                 onChange={(e) => handleStyleChange('gap', e.target.value)}
+                                onBlur={(e) => handleStyleChange('gap', normalizeCssLength(e.target.value))}
                                 className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                             />
                         </div>
@@ -55,7 +91,7 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                         <div className="space-y-1">
                             <label className="text-[10px] text-[#9da8b9]">Direction</label>
                             <select
-                                value={formState.style?.flexDirection || 'row'}
+                                value={stringValue(style.flexDirection, 'row')}
                                 onChange={(e) => handleStyleChange('flexDirection', e.target.value)}
                                 className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                             >
@@ -68,7 +104,7 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                         <div className="space-y-1">
                             <label className="text-[10px] text-[#9da8b9]">Justify</label>
                             <select
-                                value={formState.style?.justifyContent || 'flex-start'}
+                                value={stringValue(style.justifyContent, 'flex-start')}
                                 onChange={(e) => handleStyleChange('justifyContent', e.target.value)}
                                 className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                             >
@@ -82,7 +118,7 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                         <div className="space-y-1">
                             <label className="text-[10px] text-[#9da8b9]">Align Items</label>
                             <select
-                                value={formState.style?.alignItems || 'stretch'}
+                                value={stringValue(style.alignItems, 'stretch')}
                                 onChange={(e) => handleStyleChange('alignItems', e.target.value)}
                                 className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                             >
@@ -96,8 +132,9 @@ export const LayoutSection = ({ nodeType, formState, handleStyleChange }: Layout
                             <label className="text-[10px] text-[#9da8b9]">Gap (px)</label>
                             <input
                                 type="text"
-                                value={formState.style?.gap || ''}
+                                value={stringValue(style.gap)}
                                 onChange={(e) => handleStyleChange('gap', e.target.value)}
+                                onBlur={(e) => handleStyleChange('gap', normalizeCssLength(e.target.value))}
                                 className="w-full bg-[#1c2128] border border-[#282f39] text-xs rounded p-2 focus:border-blue-500 focus:outline-none"
                             />
                         </div>

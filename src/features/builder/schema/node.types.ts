@@ -3,6 +3,15 @@ export type NodeType = 'page' | 'container' | 'text' | 'button' | 'image' | 'fle
 
 export type NodeProps = Record<string, any>;
 
+export type MovePosition = 'before' | 'after' | 'inside';
+
+export interface MoveTarget {
+    overId: string;
+    position: MovePosition;
+}
+
+export type BuilderViewport = 'desktop' | 'tablet' | 'mobile';
+
 export interface BuilderNode {
     id: string;
     type: NodeType;

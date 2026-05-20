@@ -2,12 +2,12 @@ import React from 'react';
 import { NodeProps } from '../schema/node.types';
 import { cn } from '@/lib/utils';
 
-export const GridComponent = ({ children, className, style, ...props }: NodeProps & { children?: React.ReactNode }) => {
+export const GridComponent = ({ children, className, style, debug, ...props }: NodeProps & { children?: React.ReactNode }) => {
     return (
         <div
             className={cn(
                 'grid min-h-[50px] transition-all',
-                props.debug !== false && 'border border-dashed border-gray-200 p-4',
+                debug !== false && 'border border-dashed border-gray-200 p-4',
                 className
             )}
             style={{
